@@ -1,0 +1,496 @@
+{
+  "updated": "2026-10-13",
+  "coverage": "部分已核实的冲突及外溢地区；非全球完整清单",
+  "countries": [
+    {
+      "id": "UKR",
+      "name": "乌克兰",
+      "en": "Ukraine",
+      "label": "持续武装冲突",
+      "category": "persistent",
+      "region": "欧洲",
+      "areas": "东部、南部前线及多地受袭城市",
+      "summary": "俄乌战争持续影响前线与城市基础设施。局部停火讨论不等于全面停火。",
+      "center": [
+        31,
+        49
+      ],
+      "keywords": [
+        "ukrain",
+        "kyiv"
+      ],
+      "query": "Ukraine (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "联合国 / OCHA",
+          "url": "https://www.unocha.org/ukraine",
+          "date": "2026-10-09"
+        }
+      ]
+    },
+    {
+      "id": "RUS",
+      "name": "俄罗斯",
+      "en": "Russia",
+      "label": "局部交火 / 袭击",
+      "category": "localized",
+      "region": "欧洲",
+      "areas": "边境地区及受袭设施",
+      "summary": "跨境袭击影响俄罗斯部分地区；着色不表示全国处于战区。",
+      "center": [
+        43,
+        55
+      ],
+      "keywords": [
+        "russia",
+        "russian"
+      ],
+      "query": "Russia (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/world/europe/russias-yandex-says-second-data-centre-hit-by-drone-attack-2026-10-09/",
+          "date": "2026-10-09"
+        }
+      ]
+    },
+    {
+      "id": "SDN",
+      "name": "苏丹",
+      "en": "Sudan",
+      "label": "持续武装冲突",
+      "category": "persistent",
+      "region": "非洲",
+      "areas": "达尔富尔、科尔多凡等地区",
+      "summary": "持续战争、平民流离失所与援助受阻共同加重人道危机。",
+      "center": [
+        30,
+        15
+      ],
+      "keywords": [
+        "sudan"
+      ],
+      "query": "Sudan (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "联合国 / OCHA",
+          "url": "https://www.unocha.org/sudan",
+          "date": "2026-10-10"
+        }
+      ]
+    },
+    {
+      "id": "COD",
+      "name": "刚果民主共和国",
+      "en": "Democratic Republic of Congo",
+      "label": "持续武装冲突",
+      "category": "persistent",
+      "region": "非洲",
+      "areas": "东部，包括伊图里等地区",
+      "summary": "东部多地武装冲突导致流离失所，地图仅表达国家与冲突的关联。",
+      "center": [
+        25,
+        -3
+      ],
+      "keywords": [
+        "congo",
+        "drc"
+      ],
+      "query": "Democratic Republic of Congo (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "联合国 / OCHA",
+          "url": "https://www.unocha.org/democratic-republic-congo",
+          "date": "2026-10-09"
+        }
+      ]
+    },
+    {
+      "id": "MMR",
+      "name": "缅甸",
+      "en": "Myanmar",
+      "label": "持续武装冲突",
+      "category": "persistent",
+      "region": "亚洲",
+      "areas": "西北部、东南部等受冲突影响地区",
+      "summary": "武装冲突持续推动人口流离失所，并限制人道援助通行。",
+      "center": [
+        96,
+        21
+      ],
+      "keywords": [
+        "myanmar",
+        "burma"
+      ],
+      "query": "Myanmar (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "联合国 / OCHA",
+          "url": "https://myanmar.un.org/en/319232-myanmar-humanitarian-update-no-52",
+          "date": "2026-07-13"
+        }
+      ]
+    },
+    {
+      "id": "YEM",
+      "name": "也门",
+      "en": "Yemen",
+      "label": "持续武装冲突",
+      "category": "persistent",
+      "region": "中东",
+      "areas": "红海沿岸、塔伊兹及其他受影响省份",
+      "summary": "近期战事升级；同时关注人员流离失所与海上通道受影响。",
+      "center": [
+        47,
+        15
+      ],
+      "keywords": [
+        "yemen",
+        "houthi"
+      ],
+      "query": "Yemen (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "联合国 / OCHA",
+          "url": "https://dppa.un.org/en/news/this-week-in-dppa-3-9-october-2026",
+          "date": "2026-10-09"
+        }
+      ]
+    },
+    {
+      "id": "LBN",
+      "name": "黎巴嫩",
+      "en": "Lebanon",
+      "label": "局部交火 / 袭击",
+      "category": "localized",
+      "region": "中东",
+      "areas": "南部、贝鲁特南郊及受袭地区",
+      "summary": "局部袭击与战争后续影响持续，需要结合每篇报道的时间和位置阅读。",
+      "center": [
+        35.8,
+        33.9
+      ],
+      "keywords": [
+        "lebanon",
+        "lebanese",
+        "hezbollah"
+      ],
+      "query": "Lebanon (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/world/middle-east/hezbollah-outlines-financial-aid-plan-lebanese-with-destroyed-homes-2026-10-13/",
+          "date": "2026-10-13"
+        }
+      ]
+    },
+    {
+      "id": "ISR",
+      "name": "以色列",
+      "en": "Israel",
+      "label": "局部交火 / 袭击",
+      "category": "localized",
+      "region": "中东",
+      "areas": "北部边境与相关受影响地区",
+      "summary": "与黎巴嫩及巴勒斯坦地区相关的军事行动和跨境安全风险仍需关注。",
+      "center": [
+        35,
+        31.6
+      ],
+      "keywords": [
+        "israel",
+        "israeli"
+      ],
+      "query": "Israel (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "AP",
+          "url": "https://apnews.com/article/3e6e5f152048c035081eac369f62ed4f",
+          "date": "2026-10-13"
+        }
+      ]
+    },
+    {
+      "id": "PSE",
+      "name": "巴勒斯坦地区",
+      "en": "Palestine",
+      "label": "局部交火 / 袭击",
+      "category": "localized",
+      "region": "中东",
+      "areas": "加沙及相关受影响地区",
+      "summary": "停火背景下仍有暴力事件及严重人道需求；国家底图不展示实时控制线。",
+      "center": [
+        35.2,
+        31.9
+      ],
+      "keywords": [
+        "palestin",
+        "gaza",
+        "west bank"
+      ],
+      "query": "Palestine (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "AP",
+          "url": "https://apnews.com/article/3e6e5f152048c035081eac369f62ed4f",
+          "date": "2026-10-13"
+        }
+      ]
+    },
+    {
+      "id": "SAU",
+      "name": "沙特阿拉伯",
+      "en": "Saudi Arabia",
+      "label": "局部交火 / 袭击",
+      "category": "localized",
+      "region": "中东",
+      "areas": "受跨境导弹、无人机袭击影响地点",
+      "summary": "近期与也门冲突相关的跨境袭击带来局部安全风险。",
+      "center": [
+        45,
+        24
+      ],
+      "keywords": [
+        "saudi",
+        "riyadh"
+      ],
+      "query": "Saudi Arabia (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "AP",
+          "url": "https://apnews.com/article/3e6e5f152048c035081eac369f62ed4f",
+          "date": "2026-10-13"
+        }
+      ]
+    },
+    {
+      "id": "IRN",
+      "name": "伊朗",
+      "en": "Iran",
+      "label": "区域外溢影响",
+      "category": "spillover",
+      "region": "中东",
+      "areas": "霍尔木兹海峡及相关海上通道",
+      "summary": "关注海上袭击、航运安全与区域紧张局势；不将全国视为地面战场。",
+      "center": [
+        54,
+        32
+      ],
+      "keywords": [
+        "iran",
+        "hormuz"
+      ],
+      "query": "Iran (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "The Washington Post",
+          "url": "https://www.washingtonpost.com/world/2026/10/08/iran-scales-up-hormuz-attacks-raising-pressure-trump-midterms-near/",
+          "date": "2026-10-08"
+        }
+      ]
+    },
+    {
+      "id": "MDA",
+      "name": "摩尔多瓦",
+      "en": "Moldova",
+      "label": "区域外溢影响",
+      "category": "spillover",
+      "region": "欧洲",
+      "areas": "与乌克兰相邻的边境口岸",
+      "summary": "联合国报告提到无人机入侵及针对边境口岸的袭击，引发外溢安全风险。",
+      "center": [
+        28.6,
+        47
+      ],
+      "keywords": [
+        "moldova",
+        "moldovan"
+      ],
+      "query": "Moldova (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "联合国 / OCHA",
+          "url": "https://dppa.un.org/en/speeches-and-statements/assistant-secretary-generals-remarks-at-the-security-council-on",
+          "date": "2026-10-09"
+        }
+      ]
+    },
+    {
+      "id": "MLI",
+      "name": "马里",
+      "en": "Mali",
+      "label": "持续武装冲突",
+      "category": "persistent",
+      "region": "非洲",
+      "areas": "北部、中部及相关受影响地区",
+      "summary": "武装团体活动与持续战斗影响平民安全和援助通行。",
+      "center": [
+        -4,
+        17
+      ],
+      "keywords": [
+        "mali"
+      ],
+      "query": "Mali (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "联合国 / OCHA",
+          "url": "https://www.unocha.org/mali",
+          "date": "2026-09-09"
+        }
+      ]
+    },
+    {
+      "id": "BFA",
+      "name": "布基纳法索",
+      "en": "Burkina Faso",
+      "label": "持续武装冲突",
+      "category": "persistent",
+      "region": "非洲",
+      "areas": "受武装暴力影响地区",
+      "summary": "萨赫勒地区武装暴力与人员流离失所持续，受影响范围因地区而异。",
+      "center": [
+        -1.7,
+        12.4
+      ],
+      "keywords": [
+        "burkina"
+      ],
+      "query": "Burkina Faso (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "联合国 / OCHA",
+          "url": "https://www.unocha.org/burkina-faso",
+          "date": "2026-09-09"
+        }
+      ]
+    },
+    {
+      "id": "NER",
+      "name": "尼日尔",
+      "en": "Niger",
+      "label": "局部交火 / 袭击",
+      "category": "localized",
+      "region": "非洲",
+      "areas": "西部萨赫勒边境地区",
+      "summary": "西部边境地区受到武装暴力及区域危机影响。",
+      "center": [
+        8,
+        17
+      ],
+      "keywords": [
+        "niger"
+      ],
+      "query": "Niger (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "联合国 / OCHA",
+          "url": "https://www.unocha.org/burkina-faso",
+          "date": "2026-09-09"
+        }
+      ]
+    },
+    {
+      "id": "HTI",
+      "name": "海地",
+      "en": "Haiti",
+      "label": "局部武装暴力",
+      "category": "localized",
+      "region": "美洲",
+      "areas": "太子港及武装帮派活动地区",
+      "summary": "武装帮派暴力造成安全和流离失所危机；与国家间战争分别理解。",
+      "center": [
+        -72.5,
+        19
+      ],
+      "keywords": [
+        "haiti",
+        "haitian"
+      ],
+      "query": "Haiti (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "联合国 / OCHA",
+          "url": "https://www.un.org/en/spotlight-on-haiti",
+          "date": "2026-10-08"
+        }
+      ]
+    },
+    {
+      "id": "TCD",
+      "name": "乍得",
+      "en": "Chad",
+      "label": "区域外溢影响",
+      "category": "spillover",
+      "region": "非洲",
+      "areas": "东部边境及难民接收地区",
+      "summary": "苏丹战争推动跨境难民流动，对接收地区造成持续人道压力。",
+      "center": [
+        19,
+        15
+      ],
+      "keywords": [
+        "chad",
+        "tchad"
+      ],
+      "query": "Chad (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "UNHCR",
+          "url": "https://data.unhcr.org/en/situations/sudansituation",
+          "date": "2026-10-04"
+        }
+      ]
+    },
+    {
+      "id": "DJI",
+      "name": "吉布提",
+      "en": "Djibouti",
+      "label": "区域外溢影响",
+      "category": "spillover",
+      "region": "非洲",
+      "areas": "港口与难民接收地区",
+      "summary": "来自也门的跨海避难人口增加，体现周边战争的人道外溢影响。",
+      "center": [
+        42.6,
+        11.6
+      ],
+      "keywords": [
+        "djibouti"
+      ],
+      "query": "Djibouti (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "Reuters",
+          "url": "https://www.reuters.com/world/middle-east/more-than-200000-people-displaced-since-fighting-yemen-began-says-un-agency-2026-10-07/",
+          "date": "2026-10-07"
+        }
+      ]
+    },
+    {
+      "id": "BDI",
+      "name": "布隆迪",
+      "en": "Burundi",
+      "label": "区域外溢影响",
+      "category": "spillover",
+      "region": "非洲",
+      "areas": "难民接收地区",
+      "summary": "刚果民主共和国冲突推动跨境避难人口流入，增加人道响应需求。",
+      "center": [
+        29.9,
+        -3.4
+      ],
+      "keywords": [
+        "burundi"
+      ],
+      "query": "Burundi (conflict OR war OR attack OR refugees)",
+      "sources": [
+        {
+          "name": "联合国 / OCHA",
+          "url": "https://reliefweb.int/report/sudan/eastern-africa-humanitarian-snapshot-october-2026",
+          "date": "2026-10-07"
+        }
+      ]
+    }
+  ]
+}

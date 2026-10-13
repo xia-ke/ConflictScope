@@ -1,0 +1,14 @@
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Local runtime artifacts
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+!.env.example

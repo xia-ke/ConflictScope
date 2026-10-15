@@ -129,3 +129,45 @@ node tests/test_frontend.cjs
 P0 表结构包括：`countries`、`data_sources`（来源与再分发状态）、`commodities`、`commodity_hs_codes`（HS 修订版本）、`trade_flows`（贸易方向、期间、镜像估计标志）、`price_series`、`price_observations`（行情基准/币种/单位/观察日）、`events`（发生/宣布/生效/发布时间分别记录）、`event_links`（事件关联国家/商品/基础设施与证据）。所有历史表在 P0 初始化后保持为空；后续阶段只能通过经过验证的适配器填充，且不得从新闻标题自动推断价格因果关系。
 
 新增源级字段：来源网址、访问权限、许可说明、再分发标志；源内容尚未自动导入。未来开发阶段：P1 接入贸易与价格源；P2 事件核实/时间轴；P3 事件窗口分析与置信度；P4 定期同步和数据质量监控。建议采用独立 PR 验收，再合并进 `main`。
+
+
+## V3.0 P1 · 真实贸易和大宗商品价格（开发分支）
+
+P1 采用**显式命令行同步 → SQLite 事务写入 → 只读 HTTP 查询**。地图新闻接口不自动抓市场数据，避免触发第三方 API 限流；未导入任何记录时不能展示虚构的价格或贸易量。
+
+**官方参考来源**
+- UN Comtrade（HTTPS API）：https://comtradeapi.un.org/ ，预览接口无需密钥但有记录与频率限制，不能做全量排名；正式密钥可通过 `COMTRADE_API_KEY` 环境变量提供。
+- World Bank Pink Sheet（官方可下载 XLSX）：https://www.worldbank.org/en/research/commodity-markets ，从该页的 Monthly prices 下载最新月度工作簿。工作簿导入无需 pandas/openpyxl，仍为 Python 标准库。
+- EIA API v2（Brent / WTI 日度美元/桶现货）：https://www.eia.gov/opendata/ ，申请免费的 `EIA_API_KEY`。请勿将密钥提交到 GitHub。
+
+```bash
+# 初始化商品、HS2017 六位编码和来源元数据
+python sync_market.py init
+python sync_market.py catalog
+
+# 单个 HS6 商品对世界贸易额与净重。示例为乌克兰小麦（HS 100199），年度出口。
+python sync_market.py comtrade --country UKR --year 2024 --commodity wheat --flow export
+
+# 世界银行官网下载 CMO-Historical-Data-Monthly.xlsx 后：
+python sync_market.py pink-sheet --file CMO-Historical-Data-Monthly.xlsx
+# 从列名清单中选中官方数据真实列头，例如 Copper，并核对对应价格单位：
+python sync_market.py pink-sheet --file CMO-Historical-Data-Monthly.xlsx \
+  --column Copper --commodity copper --unit 'metric ton' --series-id wb:copper
+
+# EIA key 必须先配置在系统环境变量 EIA_API_KEY 中
+python sync_market.py eia --series RBRTE --start 2026-09-01 --end 2026-10-01
+python sync_market.py eia --series RWTC --start 2026-09-01 --end 2026-10-01
+
+# 启动现有地图（数据接口是只读的）
+python server.py
+```
+
+**新增 API**：`GET /api/market/status`、`GET /api/commodities`、`GET /api/trade/UKR?year=2024&flow=export`、`GET /api/prices`、`GET /api/prices/wb:copper?start=2024-01-01&end=2026-10-01`。未初始化市场 DB 时返回 503；不存在的价格序列返回 404。
+
+**数据语义限制（必须在 UI 中遵守）**：
+- Comtrade 当前只同步 5 个试点国家的明确指定商品（油、小麦、铜、金；各对应一个 HS2017 六位编码）、`partnerCode=0` 的世界合计。返回 `scope=selected_hs6_world_partner_only`，**不是所有出口、主要出口排名，也不是产量份额**。二次伙伴、运输模式或报关子维度不符合要求时拒绝入库；预览截断也拒绝导入。
+- Pink Sheet 月度价格与 EIA 日度油价必须通过不同 `series_id`、原始基准、币种、单位区分。导入时用户明确核对工作簿列名和单位，代码不猜测它们的映射。
+- 空数据表示未导入/无结果，不等于零；查询元数据提供来源、抓取时间与频率。制裁与冲突事件关联将由 P2 审核后接入，P1 不进行因果推断。
+- 来源转载须遵守各机构使用条款，数据库的 `redistribution_allowed` 默认为未知（NULL），不得当作授权许可。
+
+**测试**：`python -m unittest discover -s tests -v`，`node tests/test_frontend.cjs`。CI 在 Python 3.10 和 3.12 上运行。此次先交付数据库与接口，不把尚无数据的市场模块强行塞入现有右侧新闻面板。

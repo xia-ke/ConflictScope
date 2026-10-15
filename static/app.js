@@ -123,12 +123,14 @@ async function loadMarket(country){
   status.textContent='正在查询本地市场数据库…';
   details.replaceChildren();prices.replaceChildren();
   try{
-    const [trade,list]=await Promise.all([
+    const [trade,list,timeline]=await Promise.all([
       marketJSON('/api/trade/'+encodeURIComponent(country)),
-      marketJSON('/api/prices')
+      marketJSON('/api/prices'),
+      marketJSON('/api/timeline?country='+encodeURIComponent(country))
     ]);
     if(token!==marketToken)return;
-    if(!Array.isArray(trade.rows)||!Array.isArray(list.series))throw Error('Invalid market response');
+    if(!Array.isArray(trade.rows)||!Array.isArray(list.series)||!Array.isArray(timeline.events))
+      throw Error('Invalid market response');
     status.textContent='本地数据库 · 已跟踪 HS6 子集（非国家贸易全量）';
     if(trade.rows.length){
       const heading=document.createElement('div');
@@ -143,8 +145,16 @@ async function loadMarket(country){
     }else{
       details.innerHTML='<p class="market-empty">尚无已同步的贸易记录；缺失不代表零贸易。</p>';
     }
-    const traded=new Set(trade.rows.map(x=>x.commodity_id));
-    const related=list.series.filter(x=>traded.has(x.commodity_id)&&Number(x.observation_count)>0);
+    // Show benchmark prices for a country's tracked HS6 trade OR explicitly
+    // referenced commodities in a documented event. This is not causation.
+    const linked=new Set(trade.rows.map(x=>x.commodity_id));
+    for(const event of timeline.events){
+      if(!Array.isArray(event.links))continue;
+      for(const link of event.links){
+        if(link.commodity_id)linked.add(link.commodity_id);
+      }
+    }
+    const related=list.series.filter(x=>linked.has(x.commodity_id)&&Number(x.observation_count)>0);
     if(!related.length){
       prices.innerHTML='<p class="market-empty">此地区尚未建立与价格序列的对应关系。</p>';
       return;

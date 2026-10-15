@@ -81,6 +81,18 @@ class SchemaTests(unittest.TestCase):
         self.assertEqual(geo.status(self.db)["tables"]["trade_flows"], 1)
         self.assertEqual(geo.status(self.db)["tables"]["events"], 0)
 
+    def test_all_partners_rollup_rejects_duplicate(self):
+        with geo.connect(self.db) as conn:
+            conn.execute("INSERT INTO data_sources(id,name,homepage_url,access_type) VALUES ('comtrade','Comtrade','https://example.org','public')")
+            values = ('UKR', None, 'export', '2024-01-01', 'annual',
+                      'HS2017', '100199', 1000, 'comtrade', '2026-10-15T00:00:00Z')
+            statement = """INSERT INTO trade_flows(reporter_id,partner_id,flow,period_start,
+                period_type,hs_revision,hs_code,value_usd,source_id,retrieved_at)
+                VALUES (?,?,?,?,?,?,?,?,?,?)"""
+            conn.execute(statement, values)
+            with self.assertRaises(sqlite3.IntegrityError):
+                conn.execute(statement, values)
+
     def test_future_schema_version_fails_closed(self):
         with geo.connect(self.db) as conn:
             conn.execute("PRAGMA user_version=999")

@@ -76,6 +76,11 @@
           <label>关联价格序列
             <select id="study-series" aria-label="价格基准序列"><option value="">请选择价格序列</option></select>
           </label>
+          <label>日度对照行情（可选）
+            <select id="study-control" aria-label="模型对照序列">
+              <option value="">不计算模型相对超额收益</option>
+            </select>
+          </label>
           <label>事件日期口径
             <select id="study-basis" aria-label="分析日期口径">
               <option value="impact">影响时间（类型自适应）</option>
@@ -98,7 +103,7 @@
         <div id="study-results"></div>
         <div id="study-chart" class="study-chart" role="group" aria-label="事件前后商品累计价格变化趋势"></div>
         <div id="study-comparison"></div>
-        <p class="study-footnote">图中 0 日为事件当日或其后的首次有效行情日，基线取事件前最后一次报价。收益率是观察到的累计价格变动，不是异常收益、风险预测或已证明的冲突因果影响；月度数据不用于日级事件分析。</p>
+        <p class="study-footnote">图中 0 日为事件当日或其后的首次有效行情日，基线取事件前最后一次报价。默认收益率是观察到的累计价格变动；开启日度对照序列后，会显示依赖模型假设的累计异常对数收益（CAR），不提供显著性推断，也不代表冲突的因果影响。月度数据不用于日级事件分析。</p>
       </section>
       <div class="news-heading"><h3>相关新闻</h3><button id="refresh-news" class="text-button">↻ 刷新</button></div>
       <div class="news-controls"><select id="days" aria-label="新闻时间范围"><option value="7">最近 7 天</option><option value="30" selected>最近 30 天</option><option value="90">最近 90 天</option></select><select id="source-kind" aria-label="新闻来源类型"><option value="all">全部来源</option><option value="official">联合国新闻</option><option value="media">媒体报道</option></select></div>

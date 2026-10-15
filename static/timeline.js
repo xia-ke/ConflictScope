@@ -61,7 +61,7 @@
     description.textContent=event.description||'原始记录未提供补充说明';
     const stamp=document.createElement('span');
     stamp.className='timeline-evidence-status';
-    stamp.textContent='已编辑审核 · '+({
+    stamp.textContent=(event.research_ai_assisted ? '官方来源核查（AI辅助，尚未人工复核） · ' : '人工编辑审核 · ')+({
       reported:'来源报道',corroborated:'多来源交叉核对',
       official:'标注为官方来源',disputed:'存在争议'
     }[event.verification_status]||'来源待核对');
@@ -85,8 +85,8 @@
     const area=$('timeline-events');
     area.replaceChildren();
     $('timeline-status').textContent=events.length ?
-      '共 '+events.length+' 条已审阅记录 · 按所选日期基准排序' :
-      '当前筛选下没有已审核事件。新闻条目不会自动成为事件记录。';
+      '共 '+events.length+' 条有来源记录 · 按所选日期基准排序' :
+      '当前筛选下没有已录入事件。新闻条目不会自动成为事件记录。';
     if(!events.length)return;
     for(const [track,name] of tracks){
       const matched=events.filter(e=>e.track===track);

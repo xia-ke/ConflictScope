@@ -48,7 +48,7 @@ def check():
     if os.getenv("COMTRADE_API_KEY"):
         checks.append(probe("comtrade_authenticated_final_ukr_wheat_2024",
             lambda:market.comtrade("UKR",2024,commodity="wheat",flow="export",
-                                  key=os.environ["COMTRADE_API_KEY"])))
+                                  hs_revision="HS2022",key=os.environ["COMTRADE_API_KEY"])))
     else:
         checks.append({"source":"comtrade_authenticated_final_ukr_wheat_2024",
                        "status":"skipped","reason":"COMTRADE_API_KEY missing; final Data API not verified"})

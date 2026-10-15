@@ -78,6 +78,11 @@ class AdapterTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             src.comtrade("UKR", 2024, commodity="wheat", loader=lambda url: response)
 
+    def test_comtrade_empty_preview_is_not_a_zero_trade_claim(self):
+        with self.assertRaisesRegex(ValueError,"no verified rows"):
+            src.comtrade("UKR",2024,commodity="wheat",
+                         loader=lambda url:{"count":0,"data":[]})
+
     def test_comtrade_rejects_unapproved_reporter(self):
         with self.assertRaises(ValueError):
             src.comtrade("USA", 2024, commodity="wheat", loader=lambda url: {})

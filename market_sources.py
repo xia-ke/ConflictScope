@@ -99,6 +99,10 @@ def comtrade(reporter, year, *, commodity, flow="export", key=None, loader=fetch
         raise ValueError("Invalid Comtrade payload")
     if body.get("count", len(rows)) > len(rows) or len(rows) >= 500:
         raise ValueError("Comtrade result is incomplete; refusing partial import")
+    # Public preview can return empty for unavailable reporting/classification
+    # coverage; absence of preview records is NOT proof of zero national trade.
+    if not rows:
+        raise ValueError("Comtrade preview returned no verified rows; coverage or subscription may be required")
     result = []
     for row in rows:
         if not isinstance(row, dict):

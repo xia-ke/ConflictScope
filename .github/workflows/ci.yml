@@ -8,6 +8,7 @@ on:
       - feature/v3-historical-price-backfill
       - feature/v3-p3-event-price-study
       - feature/v3-p4-sync-quality-monitoring
+      - release/v3-integration-acceptance
   pull_request:
     branches:
       - main
@@ -16,6 +17,7 @@ on:
       - feature/v3-p2-verified-event-timeline
       - feature/v3-historical-price-backfill
       - feature/v3-p3-event-price-study
+      - feature/v3-p4-sync-quality-monitoring
 
 permissions:
   contents: read
@@ -37,6 +39,10 @@ jobs:
         env:
           CONFLICTSCOPE_STRUCTURED_SOURCES: '0'
         run: python -m unittest discover -s tests -v
+      - name: V3 cross-phase offline integration acceptance
+        env:
+          CONFLICTSCOPE_STRUCTURED_SOURCES: '0'
+        run: python -m unittest discover -s tests -p test_v3_integration.py -v
       - name: Verify V3 schema CLI
         run: |
           python geoeconomics.py init --db /tmp/conflictscope-ci.sqlite3

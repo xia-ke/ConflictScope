@@ -1,0 +1,41 @@
+name: V3 real market end-to-end acceptance
+on:
+  push:
+    branches: [release/v3-integration-acceptance]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  real-market-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Execute real-source integration in disposable SQLite
+        id: e2e
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          python scripts/live_v3_end_to_end.py > v3-live-e2e.json
+          code=$?
+          set -e
+          cat v3-live-e2e.json
+          exit "$code"
+      - name: Upload sanitized gate evidence (no price values or user data)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: v3-real-source-integration-report
+          path: v3-live-e2e.json
+          if-no-files-found: warn
+      - name: State the real-source gate result
+        if: always()
+        run: |
+          echo "Real-market end-to-end outcome: ${{ steps.e2e.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "If failed, real-data release cannot be called fully validated even if offline CI is green." >> "$GITHUB_STEP_SUMMARY"

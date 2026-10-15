@@ -30,7 +30,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Compile Python modules
-        run: python -m py_compile server.py source_collectors.py geoeconomics.py market_sources.py market_data.py sync_market.py event_data.py sync_events.py historical_prices.py event_price_study.py
+        run: python -m py_compile server.py source_collectors.py geoeconomics.py market_sources.py market_data.py sync_market.py event_data.py sync_events.py historical_prices.py event_price_study.py event_market_model.py
       - name: Test Python
         env:
           CONFLICTSCOPE_STRUCTURED_SOURCES: '0'

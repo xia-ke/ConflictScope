@@ -83,9 +83,9 @@ def begin(job_id, path=geo.DEFAULT_DB):
 
 
 def finish(run_id, job_id, status, attempts, count=0,
-           digest=None, latest_date=None, error_code=None, path=geo.DEFAULT_DB):
+           digest=None, latest_date=None, error_code=None, review_pending=False, path=geo.DEFAULT_DB):
     _job_id(job_id)
-    if status not in ("success","empty","error") or attempts<1 or count<0:
+    if status not in ("success","empty","error") or attempts<1 or count<0 or type(review_pending) is not bool:
         raise ValueError("Invalid sync completion state")
     if digest is not None and not re.fullmatch("[a-f0-9]{64}",digest):
         raise ValueError("Invalid source checksum")
@@ -109,14 +109,25 @@ def finish(run_id, job_id, status, attempts, count=0,
             good=now
         conn.execute("""INSERT INTO source_checks(
             job_id,checked_at,status,last_success_at,latest_observation,
-            fingerprint,failure_code) VALUES(?,?,?,?,?,?,?)
+            fingerprint,failure_code,review_pending) VALUES(?,?,?,?,?,?,?,?)
             ON CONFLICT(job_id) DO UPDATE SET
               checked_at=excluded.checked_at,status=excluded.status,
               last_success_at=excluded.last_success_at,
               latest_observation=COALESCE(excluded.latest_observation,source_checks.latest_observation),
               fingerprint=COALESCE(excluded.fingerprint,source_checks.fingerprint),
-              failure_code=excluded.failure_code""",
-            (job_id,now,status,good,latest_date,digest,error_code))
+              failure_code=excluded.failure_code,
+              review_pending=max(source_checks.review_pending,excluded.review_pending)""",
+            (job_id,now,status,good,latest_date,digest,error_code,int(review_pending)))
+
+
+def acknowledge_watch(job_id,path=geo.DEFAULT_DB):
+    """Operator marks detected file change as seen; does NOT approve event content."""
+    _job_id(job_id)
+    with geo.connect(path) as conn:
+        updated=conn.execute("""UPDATE source_checks
+            SET review_pending=0,review_acknowledged_at=?
+            WHERE job_id=? AND review_pending=1""",(_iso(),job_id)).rowcount
+    return bool(updated)
 
 
 def checked(path=geo.DEFAULT_DB):
@@ -168,8 +179,10 @@ def report(path=geo.DEFAULT_DB, *, today=None):
         recent=[dict(row) for row in conn.execute("""SELECT id,job_id,started_at,completed_at,
             status,attempts,record_count,failure_code FROM sync_runs
             ORDER BY id DESC LIMIT 40""")]
-        alerts=[{"job_id":j["job_id"],"code":j["health"]}
-                for j in jobs if j["health"] in ("never_succeeded","failed_last_attempt","stale_update")]
+        alerts=[{"job_id":j["job_id"],"code":"source_change_requires_review"}
+                for j in jobs if j["review_pending"]]
+        alerts.extend({"job_id":j["job_id"],"code":j["health"]}
+                for j in jobs if j["health"] in ("never_succeeded","failed_last_attempt","stale_update")])
         alerts.extend({"series_id":p["id"],"code":p["health"]}
                       for p in prices if p["health"]!="current_observations")
         if unfinished:

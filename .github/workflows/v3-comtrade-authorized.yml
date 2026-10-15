@@ -54,12 +54,13 @@ jobs:
           import market_sources as m
           try:
               result=m.comtrade("UKR",2024,commodity="wheat",flow="export",
+                               hs_revision="HS2022",
                                key=os.environ["COMTRADE_API_KEY"])
           except Exception as exc:
               print("Comtrade authorized contract failed: "+type(exc).__name__)
               sys.exit(1)
           assert len(result)==1
-          assert result[0]["hs_revision"]=="HS2017"
+          assert result[0]["hs_revision"]=="HS2022"
           assert result[0]["hs_code"]=="100199"
           assert result[0]["reporter"]=="UKR"
           assert result[0]["period_start"]=="2024-01-01"
@@ -75,9 +76,9 @@ jobs:
               assert market_data.save_trade(result,db)==1
               report=market_data.trade_by_country("UKR",year=2024,flow="export",path=db)
               assert len(report["rows"])==1
-              assert report["rows"][0]["hs_revision"]=="HS2017"
+              assert report["rows"][0]["hs_revision"]=="HS2022"
               assert report["rows"][0]["hs_code"]=="100199"
               assert geoeconomics.status(db)["tables"]["trade_flows"]==1
-          print("Comtrade authorized final API -> temporary SQLite -> app query: validated")
+          print("Comtrade H6/HS2022 authorized final API -> temporary SQLite -> app query: validated")
           print("No trade values logged; API access does not grant data redistribution permission.")
           PY

@@ -86,6 +86,11 @@ CREATE TABLE IF NOT EXISTS trade_flows (
   UNIQUE(reporter_id, partner_id, flow, period_start, period_type,
          hs_revision, hs_code, source_id, is_mirror_estimate)
 );
+-- SQLite UNIQUE treats NULL partner IDs as distinct: normalize only in identity index.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_trade_identity ON trade_flows(
+  reporter_id, COALESCE(partner_id, '__ALL__'), flow, period_start, period_type,
+  hs_revision, hs_code, source_id, is_mirror_estimate
+);
 CREATE INDEX IF NOT EXISTS idx_trade_reporter_period ON trade_flows(reporter_id, period_start);
 CREATE INDEX IF NOT EXISTS idx_trade_hs_period ON trade_flows(hs_revision, hs_code, period_start);
 CREATE TABLE IF NOT EXISTS events (

@@ -51,3 +51,36 @@
 .timeline-evidence{display:flex;flex-wrap:wrap;gap:8px 10px;margin:9px 0 0}
 .timeline-evidence a{font-size:9px;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
 .timeline-note{font-size:9px;line-height:1.7;color:#8294a0;margin:8px 0 12px}
+
+
+/* P3 descriptive event-window research, with explicit observation and source context */
+.study-section{border-top:1px solid var(--line);margin-top:22px;padding-top:18px}
+.study-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.study-heading h3{font-size:14px;font-weight:550;margin:0}
+.study-heading span{font-size:9px;color:var(--accent)}
+.study-controls{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:13px 0}
+.study-controls label{min-width:0;display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:10px}
+.study-controls select{min-width:0;width:100%;border:1px solid var(--line);border-radius:4px;background:#0e1921;color:#ccdce4;padding:7px 6px;font-size:10px}
+.study-status{font-size:10px;color:#a9bdc6;line-height:1.75;margin:9px 0}
+.study-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:11px 0}
+.study-stat{border:1px solid var(--line);background:#0e1a22;border-radius:5px;padding:9px;display:flex;flex-direction:column;gap:7px}
+.study-stat-label{font-size:9px;color:var(--muted)}
+.study-stat-value{font-size:17px;color:var(--accent);font-variant-numeric:tabular-nums}
+.study-meta,.study-footnote{font-size:9px;color:#8298a3;line-height:1.75;margin:9px 0}
+.study-source{font-size:10px;color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+.study-warning{font-size:9px;color:#ddb788;line-height:1.6;margin:8px 0}
+.study-chart{min-height:0;overflow:hidden}
+.study-chart svg{display:block;width:100%;height:auto;margin:10px 0}
+.study-grid-line{stroke:#657987;stroke-opacity:.25;stroke-dasharray:3 4}
+.study-event-line{stroke:#d0a57a;stroke-width:1.5;stroke-dasharray:4 3}
+.study-event-label{fill:#d0a57a;font-size:8px}
+.study-axis{fill:#8d9faa;font-size:8px}
+.study-data-line{fill:none;stroke:#6cb4d3;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.study-data-dot{fill:#d0a57a}
+.study-comparison-heading{font-size:11px;color:#c3d3dc;font-weight:550;margin:15px 0 8px}
+.study-comparison-table{border-collapse:collapse;width:100%;font-size:9px;line-height:1.5}
+.study-comparison-table td,.study-comparison-table th{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.study-comparison-table th{text-align:left;color:#8fa4ae;font-weight:500}
+.study-comparison-table td:first-child{max-width:170px;color:#d3e0e6}
+.study-comparison-table td:nth-child(2),.study-comparison-table td:nth-child(3){text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;color:#c3d0d7}
+@media(max-width:440px){.study-controls{grid-template-columns:1fr}.study-stat-value{font-size:15px}}

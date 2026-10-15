@@ -82,6 +82,7 @@ class EventImportTests(unittest.TestCase):
         self.assertEqual(event["occurred_at"],"2026-01-01")
         self.assertEqual(event["track"],"policy")
         self.assertTrue(event["editor_reviewed"])
+        self.assertFalse(event["research_ai_assisted"])
         self.assertEqual(len(event["evidence"]),2)
         self.assertEqual(event_data.timeline(commodity="wheat",path=self.db)["count"],1)
         self.assertEqual(event_data.timeline(commodity="gold",path=self.db)["count"],0)

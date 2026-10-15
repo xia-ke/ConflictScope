@@ -43,6 +43,12 @@ jobs:
           node --check static/timeline.js
           node tests/test_frontend.cjs
           node tests/test_timeline_frontend.cjs
+      - name: P2 official-source historical dataset (no network)
+        run: |
+          python sync_events.py validate --file data/official-events-2022-2024.json
+          python sync_events.py import --file data/official-events-2022-2024.json --db /tmp/conflictscope-ci.sqlite3
+          python sync_events.py import --file data/official-events-2022-2024.json --db /tmp/conflictscope-ci.sqlite3
+          python -c "import sys,json; import event_data; d=event_data.timeline(country='UKR',path='/tmp/conflictscope-ci.sqlite3'); assert d['count'] >= 4; assert all(e['research_ai_assisted'] and not e['editor_reviewed'] for e in d['events']); print('Historical events found:', d['count'])"
       - name: P2 manual ledger CLI smoke
         run: |
           python sync_events.py --help

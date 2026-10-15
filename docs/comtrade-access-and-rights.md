@@ -12,7 +12,7 @@
 
 ## 二、如何取得密钥及验证
 
-1. 从 [UN Comtrade 官网](https://comtradeplus.un.org/) 登记 B2C 账户，阅读许可条款，在 [UN Comtrade Developer Portal](https://comtradedeveloper.un.org/) 创建免费 API Subscription Key。免费账户当前可使用有次数限制的正式 Data API；实际额度按登录后的账户权限执行。
+1. 从 [UN Comtrade 官网](https://comtradeplus.un.org/) 登记账户，随后在 [My API Portal](https://comtradeplus.un.org/MyComtrade/APIPortal) 点击 **Generate API Key**，并查看 [Developer Portal](https://comtradedeveloper.un.org/) 上的调用文档和授权产品。免费注册账户通常有每天 500 次 Data API 调用额度；以账户当前权益为准。
 2. 在本地终端设置 `COMTRADE_API_KEY` 环境变量；**不要提交到仓库、日志、配置 JSON、截图**，也不要将凭证粘贴到公开 Issue / PR。
 3. 本地执行：
 
@@ -47,6 +47,14 @@
 **政策文本在商业少量记录、盈利可视化与收费许可章节存在适用条件交叉**。在不知道 ConflictScope 最终是否公开、免费或盈利，以及预计开放数据量/下载方式前，不可能断言全面获得授权。涉及公开商业化运营时应向 [UNSD 联系邮箱](mailto:subscriptions@un.org) 提供产品说明，获得明确的书面许可确认后再发布。
 
 建议数据署名：**Source: UN Comtrade (United Nations Statistics Division), reporter, year, HS2017 six-digit classification, flow and query date**。不应使用“UN 已确认该事件造成市场涨跌”的表达。
+
+## 三点一、本地研究用途的默认授权判定
+
+项目原始目标是 **127.0.0.1 本地运行的研究地图**，未指定商业收费或开放数据下载。若持续保持单用户内部分析、不开放远程访问、不向第三方重新传输 Comtrade 原始记录，属于 UNSD 公开政策明确列出的 **internal use** 场景，原则上不要求另外付费的数据再分发许可。该条件性结论不等于已经获取 API 访问权限、对外商业化许可或其他来源的再分发许可。
+
+若扩展到公开免费网页，UNSD 对免费的数据可视化/分析应用、少量表图展示列有豁免，但仍须提供官方来源署名、避免无限制导出原始数据，并确认当前政策适用范围。若改为收费、商业化或大规模可提取数据服务，则重新核对再分发许可和订阅义务，向 UNSD 书面确认。
+
+本地用途验收可暂视为**用途场景清晰（附条件）**；**Comtrade 正式 API 是否成功返回数据仍是硬性阻塞**。不要以“用途合法”推导“密钥已配置或贸易数据已验证”。
 
 ## 四、剩余发布阻塞与验收门禁
 

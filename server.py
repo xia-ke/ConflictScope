@@ -5,6 +5,7 @@ import concurrent.futures
 import gzip
 import html
 import json
+import os
 import re
 import threading
 import time
@@ -39,7 +40,7 @@ def plain(value):
 def safe_url(value):
     try:
         p = urllib.parse.urlsplit(value)
-        return value if p.scheme in ('https', 'http') and p.hostname and not p.username else ''
+        return value if p.scheme in ('https', 'http') and p.hostname and not (p.username or p.password) else ''
     except ValueError:
         return ''
 

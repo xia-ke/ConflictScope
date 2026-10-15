@@ -9,8 +9,10 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 from datetime import datetime,timezone
 
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 import historical_prices as history
 import market_sources as market
 

@@ -140,6 +140,39 @@ class StudyTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.call(basis="nothing")
 
+    def test_optional_market_model_uses_only_pre_event_aligned_returns(self):
+        import math
+        rows=[(d, 80.0+i*0.24+0.23*math.sin(i/4))
+              for i,(d,price) in enumerate(self.rows)]
+        market_data.save_prices("eia:RWTC","oil","eia","WTI","daily",
+                               "USD","barrel",rows,self.path)
+        result=self.call(control_series="eia:RWTC")
+        model=result["market_model"]
+        self.assertEqual(model["status"],"ok")
+        self.assertGreaterEqual(model["estimation_count"],30)
+        self.assertEqual(model["control"]["id"],"eia:RWTC")
+        self.assertIn("0",model["cumulative_abnormal_log_return_pct"])
+        self.assertIn("5",model["cumulative_abnormal_log_return_pct"])
+        self.assertIsInstance(model["cumulative_abnormal_log_return_pct"]["5"],float)
+        self.assertNotIn("p_value",model)
+        self.assertIn("not a causal",model["warning"])
+
+    def test_control_cannot_be_self_or_monthly(self):
+        with self.assertRaises(ValueError):
+            self.call(control_series="eia:RBRTE")
+        market_data.save_prices("wb:oil","oil","pink-sheet","Monthly oil","monthly",
+                               "USD","barrel",[("2022-02-01",88.0)],self.path)
+        with self.assertRaises(ValueError):
+            self.call(control_series="wb:oil")
+
+    def test_insufficient_control_history_does_not_make_up_car(self):
+        market_data.save_prices("eia:RWTC","oil","eia","WTI","daily",
+                "USD","barrel",[("2022-02-25",80),("2022-02-28",81)],self.path)
+        r=self.call(control_series="eia:RWTC")
+        self.assertEqual(r["status"],"ok")
+        self.assertEqual(r["market_model"]["status"],"insufficient_estimation_data")
+        self.assertNotIn("cumulative_abnormal_log_return_pct",r["market_model"])
+
     def test_country_comparison_excludes_unlinked_and_returns_ordered(self):
         result=study.compare(country="UKR",series_id="eia:RBRTE",path=self.path)
         self.assertEqual(result["count"],1)
@@ -184,6 +217,13 @@ class AnalysisApiTests(unittest.TestCase):
         self.assertEqual(status,200)
         called.assert_called_once_with(country="UKR",series_id="eia:RBRTE",
                                        basis="effective",window=20,limit=3)
+
+    def test_api_optional_control_parameter(self):
+        with patch.object(server.event_price_study,"study",
+                return_value={"status":"ok","market_model":{"status":"insufficient_estimation_data"}}) as called:
+            status,doc=self.get("/api/analysis/event-study?event_id=a&series=b&control=c")
+        self.assertEqual(status,200)
+        called.assert_called_once_with("a","b",basis="impact",window=20,control_series="c")
 
     def test_bad_requests_fail_closed(self):
         for path in (

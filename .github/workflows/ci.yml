@@ -3,9 +3,11 @@ on:
   push:
     branches:
       - feature/v3-p0-geoeconomic-foundation
+      - feature/v3-p1-trade-commodity-prices
   pull_request:
     branches:
       - main
+      - feature/v3-p0-geoeconomic-foundation
 
 permissions:
   contents: read
@@ -22,7 +24,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Compile Python modules
-        run: python -m py_compile server.py source_collectors.py geoeconomics.py
+        run: python -m py_compile server.py source_collectors.py geoeconomics.py market_sources.py market_data.py sync_market.py
       - name: Test Python
         env:
           CONFLICTSCOPE_STRUCTURED_SOURCES: '0'
@@ -31,5 +33,7 @@ jobs:
         run: |
           python geoeconomics.py init --db /tmp/conflictscope-ci.sqlite3
           python geoeconomics.py status --db /tmp/conflictscope-ci.sqlite3
+      - name: Verify P1 curated source catalog
+        run: python sync_market.py catalog
       - name: Frontend logic regression
         run: node tests/test_frontend.cjs

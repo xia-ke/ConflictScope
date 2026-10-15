@@ -6,6 +6,7 @@ import gzip
 import html
 import json
 import os
+import sqlite3
 import re
 import threading
 import time
@@ -19,6 +20,8 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 import source_collectors
+import geoeconomics
+import market_data
 
 ROOT = Path(__file__).resolve().parent
 CONFIG = json.loads((ROOT / 'data/conflicts.json').read_text(encoding='utf-8'))
@@ -184,6 +187,43 @@ class Handler(SimpleHTTPRequestHandler):
             self.json_response(CONFIG); return
         if parsed.path == '/api/health':
             self.json_response({'ok': True, 'time': now_iso()}); return
+        if parsed.path.startswith(('/api/commodities', '/api/trade/', '/api/prices', '/api/market/')):
+            # Read-only market endpoints never trigger external API calls or create data.
+            args = urllib.parse.parse_qs(parsed.query)
+            try:
+                if parsed.path == '/api/market/status':
+                    self.json_response(geoeconomics.status()); return
+                if parsed.path == '/api/commodities':
+                    self.json_response(market_data.commodity_catalog()); return
+                if parsed.path == '/api/prices':
+                    self.json_response(market_data.price_series_list()); return
+                if parsed.path.startswith('/api/prices/'):
+                    series = parsed.path[len('/api/prices/'):]
+                    if not series or '/' in series:
+                        self.json_response({'error': 'Invalid series'}, 400); return
+                    start = args.get('start', [None])[0]
+                    end = args.get('end', [None])[0]
+                    for day in (start, end):
+                        if day is not None:
+                            datetime.strptime(day, '%Y-%m-%d')
+                    result = market_data.price_history(series, start=start, end=end)
+                    if result is None:
+                        self.json_response({'error': 'Price series not found'}, 404); return
+                    self.json_response(result); return
+                if parsed.path.startswith('/api/trade/'):
+                    country = parsed.path[len('/api/trade/'):]
+                    year = args.get('year', [None])[0]
+                    if year is not None:
+                        if not year.isdecimal() or len(year) != 4:
+                            self.json_response({'error': 'Invalid year'}, 400); return
+                        year = int(year)
+                    self.json_response(market_data.trade_by_country(
+                        country, year=year, flow=args.get('flow', [None])[0])); return
+                self.json_response({'error':'Unknown market API'}, 404); return
+            except (ValueError, TypeError):
+                self.json_response({'error':'Invalid market query'}, 400); return
+            except (OSError, sqlite3.Error, RuntimeError):
+                self.json_response({'error':'Market database unavailable; run sync_market.py init'}, 503); return
         if parsed.path == '/api/news':
             args = urllib.parse.parse_qs(parsed.query)
             country_id = args.get('country', [''])[0]

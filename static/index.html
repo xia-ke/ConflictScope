@@ -67,6 +67,44 @@
         <div id="timeline-events" class="timeline-events"></div>
         <p class="timeline-note">时间轴展示有官方来源和审查记录的事件。AI辅助整理的记录尚未完成人工复核；四类日期分别保存，价格波动不能据此认定由冲突造成。</p>
       </section>
+      <section class="study-section" aria-label="事件与商品价格观察">
+        <div class="study-heading"><h3>事件与价格观察</h3><span>P3 · 描述性事件窗口</span></div>
+        <div class="study-controls">
+          <label>重大事件
+            <select id="study-event" aria-label="分析事件"><option value="">请选择事件</option></select>
+          </label>
+          <label>关联价格序列
+            <select id="study-series" aria-label="价格基准序列"><option value="">请选择价格序列</option></select>
+          </label>
+          <label>日度对照行情（可选）
+            <select id="study-control" aria-label="模型对照序列">
+              <option value="">不计算模型相对超额收益</option>
+            </select>
+          </label>
+          <label>事件日期口径
+            <select id="study-basis" aria-label="分析日期口径">
+              <option value="impact">影响时间（类型自适应）</option>
+              <option value="occurred">发生日</option>
+              <option value="announced">公告日</option>
+              <option value="effective">生效日</option>
+              <option value="published">来源发表日</option>
+            </select>
+          </label>
+          <label>观察窗口
+            <select id="study-window" aria-label="交易日观察窗口">
+              <option value="5">±5 个有报价的交易日</option>
+              <option value="10">±10 个有报价的交易日</option>
+              <option value="20" selected>±20 个有报价的交易日</option>
+              <option value="30">±30 个有报价的交易日</option>
+            </select>
+          </label>
+        </div>
+        <div id="study-status" class="study-status" role="status" aria-live="polite">请选择有历史价格数据的地区</div>
+        <div id="study-results"></div>
+        <div id="study-chart" class="study-chart" role="group" aria-label="事件前后商品累计价格变化趋势"></div>
+        <div id="study-comparison"></div>
+        <p class="study-footnote">图中 0 日为事件当日或其后的首次有效行情日，基线取事件前最后一次报价。默认收益率是观察到的累计价格变动；开启日度对照序列后，会显示依赖模型假设的累计异常对数收益（CAR），不提供显著性推断，也不代表冲突的因果影响。月度数据不用于日级事件分析。</p>
+      </section>
       <div class="news-heading"><h3>相关新闻</h3><button id="refresh-news" class="text-button">↻ 刷新</button></div>
       <div class="news-controls"><select id="days" aria-label="新闻时间范围"><option value="7">最近 7 天</option><option value="30" selected>最近 30 天</option><option value="90">最近 90 天</option></select><select id="source-kind" aria-label="新闻来源类型"><option value="all">全部来源</option><option value="official">联合国新闻</option><option value="media">媒体报道</option></select></div>
       <div id="news-status" class="news-status" role="status" aria-live="polite"></div><div id="provider-status" class="provider-status" aria-label="新闻源状态"></div><div id="articles" class="articles"></div>
@@ -78,4 +116,5 @@
 <dialog id="about"><button id="close-about" aria-label="关闭说明" class="dialog-close">×</button><div class="eyebrow">ABOUT THE DATA</div><h2>如何阅读这张地图</h2><p>这是一个国家级冲突新闻观察站。纳入的是部分已核实案例，并非全球冲突的完整清单。未着色不等于没有冲突。</p><div class="about-types"><p><i class="swatch persistent"></i><b>持续武装冲突</b>：持续战事或武装团体冲突。</p><p><i class="swatch localized"></i><b>局部交火 / 武装暴力</b>：局部袭击、跨境交火或严重武装暴力，包括海地的帮派暴力。</p><p><i class="swatch spillover"></i><b>区域外溢</b>：跨境安全、航运或难民接收影响，并不表示当地发生地面战争。</p></div><p>这些颜色是本项目的描述性分类，不是死亡人数或严重程度评分。每个地区附有核实依据与来源日期。当前地图快照截至 <b>2026-10-13</b>，不同依据的发布日期可能更早。</p><p>新闻在选择国家、切换时间范围和点击刷新时获取；同一订阅源和国家的成功结果缓存 15 分钟；点击“刷新”会重新获取。新闻更新不会自动更改地图状态。没有近期结果时，页面明确显示缓存或快照；没有结果就显示空状态。</p><p>底图：Natural Earth，经 datasets/geo-countries 分发，公共领域。国界和区域显示仅为地理概览。地图数据已随项目打包，新闻更新需要联网。</p><a class="source-link" href="https://www.naturalearthdata.com/about/terms-of-use/" target="_blank" rel="noopener noreferrer">查看底图使用条款 ↗</a></dialog>
 <script src="/app.js" defer></script>
 <script src="/timeline.js" defer></script>
+<script src="/study.js" defer></script>
 </body></html>

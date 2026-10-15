@@ -23,6 +23,7 @@ import source_collectors
 import geoeconomics
 import market_data
 import event_data
+import event_price_study
 
 ROOT = Path(__file__).resolve().parent
 CONFIG = json.loads((ROOT / 'data/conflicts.json').read_text(encoding='utf-8'))
@@ -225,6 +226,37 @@ class Handler(SimpleHTTPRequestHandler):
                 self.json_response({'error':'Invalid market query'}, 400); return
             except (OSError, sqlite3.Error, RuntimeError):
                 self.json_response({'error':'Market database unavailable; run sync_market.py init'}, 503); return
+        if parsed.path.startswith('/api/analysis/'):
+            options = urllib.parse.parse_qs(parsed.query)
+            def arg(name, default=None):
+                values = options.get(name, [])
+                if len(values) > 1:
+                    raise ValueError('Duplicate query parameter')
+                return values[0] if values else default
+            try:
+                basis = arg('basis','impact')
+                days = int(arg('window','20'))
+                series = arg('series')
+                control = arg('control')
+                if parsed.path == '/api/analysis/event-study':
+                    kwargs = {'control_series':control} if control else {}
+                    result = event_price_study.study(
+                        arg('event_id'),series,basis=basis,window=days,**kwargs)
+                elif parsed.path == '/api/analysis/compare':
+                    kwargs = {'control_series':control} if control else {}
+                    result = event_price_study.compare(
+                        country=arg('country'),series_id=series,basis=basis,
+                        window=days,limit=int(arg('limit','30')),**kwargs)
+                else:
+                    self.json_response({'error':'Unknown analysis endpoint'},404); return
+                self.json_response(result)
+            except event_price_study.MissingStudyEntity:
+                self.json_response({'error':'Event or market series not found'},404)
+            except (ValueError,TypeError):
+                self.json_response({'error':'Invalid event study request or incompatible commodity'},400)
+            except (OSError,sqlite3.Error,RuntimeError):
+                self.json_response({'error':'Analysis database unavailable; import reviewed events and prices'},503)
+            return
         if parsed.path in ('/api/timeline', '/api/events'):
             params = urllib.parse.parse_qs(parsed.query)
             try:

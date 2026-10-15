@@ -223,3 +223,14 @@ P2 在现有地图和 P1 商品面板旁增加“重大事件时间轴”，按�
     python historical_prices.py coverage --country UKR
 
 具体的世界银行 XLSX 导入、EIA API Key、运行示例与数据版权要求见 [docs/historical-prices.md](docs/historical-prices.md)。日度原油现货和月度 IMF/世界银行商品基准严格区分；默认不将价格变化归因于冲突。
+
+
+## V3.0 P3 · 冲突事件与价格联动（开发分支）
+
+P3 增加国家地区详情中的“事件与价格观察”分析区：选事件、选择经事件证据关联的商品日度现货基准、日期口径和有效交易日窗口；绘制 t=0 标记、事件前后真实价格累计变动及同国家/商品多事件对照表。用户也可手动选择另一条同币种日度现货序列计算具有严格历史训练窗的简化 OLS 市场模型累计异常对数收益 CAR。
+
+**重要**：没有真实导入的历史价格数据则显示缺失；月度商品均价不能伪装日级波动；CAR 只是模型依赖指标，不代表因果影响或统计显著性。已整理的 P2 官方来源历史事件属于 AI 辅助核查，尚待人工编辑复核。
+
+使用方法：先运行 `python sync_events.py import --file data/official-events-2022-2024.json` 导入事件，再按 `docs/historical-prices.md` 回填对应时段的现货价格，然后运行 `python server.py`。API 为 `/api/analysis/event-study` 和 `/api/analysis/compare`，均为只读且不触发网络抓取。
+
+**完整方法、样本覆盖要求和模型限制：** [docs/event-price-study.md](docs/event-price-study.md)。

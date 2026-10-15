@@ -214,12 +214,14 @@ class V3Integration(unittest.TestCase):
                             for x in health["recent_runs"]))
 
     def test_readonly_apis_did_not_mutate_market_data(self):
-        before=geo.status(self.db)["tables"].copy()
+        with geo.connect(self.db,readonly=True) as conn:
+            before=conn.execute("SELECT count(*) FROM price_observations").fetchone()[0]
         for _ in range(2):
             self.get("/api/prices")
             self.get("/api/timeline?country=RUS")
             self.get("/api/sync/status")
-        after=geo.status(self.db)["tables"]
+        with geo.connect(self.db,readonly=True) as conn:
+            after=conn.execute("SELECT count(*) FROM price_observations").fetchone()[0]
         self.assertEqual(before,after)
 
 

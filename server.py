@@ -17,6 +17,8 @@ from email.utils import parsedate_to_datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import source_collectors
+
 ROOT = Path(__file__).resolve().parent
 CONFIG = json.loads((ROOT / 'data/conflicts.json').read_text(encoding='utf-8'))
 COUNTRIES = {x['id']: x for x in CONFIG['countries']}
@@ -131,6 +133,12 @@ def get_news(country_id, days=30, force=False):
                     providers.append(provider)
                 except Exception:
                     errors.append(provider)
+        # Supplement RSS with structured discovery; disable with CONFLICTSCOPE_STRUCTURED_SOURCES=0.
+        if os.getenv('CONFLICTSCOPE_STRUCTURED_SOURCES', '1') == '1':
+            extra, ok, bad = source_collectors.collect(country, days)
+            articles.extend(x for x in extra if relevant(x, country))
+            providers.extend(ok)
+            errors.extend(bad)
         seen = set()
         unique = []
         for x in sorted(articles, key=lambda a: a['published'], reverse=True):

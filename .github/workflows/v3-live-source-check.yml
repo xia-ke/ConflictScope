@@ -21,8 +21,10 @@ jobs:
         continue-on-error: true
         shell: bash
         run: |
+          set +e
           python scripts/live_source_probe.py --strict > source_probe.json
           code=$?
+          set -e
           cat source_probe.json
           if [ "$code" -ne 0 ]; then
             echo "Some live sources failed; this is NOT a verified live-data release." >> "$GITHUB_STEP_SUMMARY"

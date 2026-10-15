@@ -237,13 +237,16 @@ class Handler(SimpleHTTPRequestHandler):
                 basis = arg('basis','impact')
                 days = int(arg('window','20'))
                 series = arg('series')
+                control = arg('control')
                 if parsed.path == '/api/analysis/event-study':
+                    kwargs = {'control_series':control} if control else {}
                     result = event_price_study.study(
-                        arg('event_id'),series,basis=basis,window=days)
+                        arg('event_id'),series,basis=basis,window=days,**kwargs)
                 elif parsed.path == '/api/analysis/compare':
+                    kwargs = {'control_series':control} if control else {}
                     result = event_price_study.compare(
                         country=arg('country'),series_id=series,basis=basis,
-                        window=days,limit=int(arg('limit','30')))
+                        window=days,limit=int(arg('limit','30')),**kwargs)
                 else:
                     self.json_response({'error':'Unknown analysis endpoint'},404); return
                 self.json_response(result)

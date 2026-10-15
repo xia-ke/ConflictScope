@@ -16,7 +16,7 @@ class MockElement {
   setAttribute(name,value){this.attrs[name]=value;}
 }
 const ids=[
-  'study-event','study-series','study-basis','study-window','study-status',
+  'study-event','study-series','study-control','study-basis','study-window','study-status',
   'study-results','study-chart','study-comparison'
 ];
 const elements=Object.fromEntries(ids.map(x=>[x,new MockElement(x)]));
@@ -53,7 +53,9 @@ const fetch=async url=>{
   if(u.pathname==='/api/timeline')payload=returnData;
   else if(u.pathname==='/api/prices')payload={series:[
     {id:'fred:DCOILBRENTEU',benchmark:'Brent Spot',commodity_id:'oil',
-     observation_count:1100,frequency:'daily',currency:'USD',unit:'barrel'},
+     observation_count:1100,frequency:'daily',price_type:'spot',currency:'USD',unit:'barrel'},
+    {id:'fred:DCOILWTICO',benchmark:'WTI Spot',commodity_id:'oil',
+     observation_count:1100,frequency:'daily',price_type:'spot',currency:'USD',unit:'barrel'},
     {id:'fred:PWHEAMTUSDM',benchmark:'Wheat monthly',commodity_id:'wheat',
      observation_count:96,frequency:'monthly',currency:'USD',unit:'metric ton'}
   ]};
@@ -91,6 +93,13 @@ async function main(){
   assert.ok(requests.some(x=>x.includes('/api/analysis/event-study?')));
   await elements['study-window'].change('5');
   assert.ok(requests.some(x=>x.includes('window=5')));
+  analysis={...analysis,market_model:{
+    status:'ok',control:{benchmark:'WTI Spot'},estimation_count:60,
+    cumulative_abnormal_log_return_pct:{0:0.3,5:1.2,20:2.5}
+  }};
+  await elements['study-control'].change('fred:DCOILWTICO');
+  assert.ok(requests.some(x=>x.includes('control=fred%3ADCOILWTICO')));
+  assert.ok(elements['study-results'].children.some(x=>x.textContent.includes('CAR')));
   analysis={...analysis,status:'unsupported_frequency',points:[],returns:{},
             reason:'Monthly prices cannot resolve daily events'};
   await elements['study-basis'].change('published');

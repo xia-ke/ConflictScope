@@ -43,10 +43,13 @@ def cli(argv=None):
         rows = sources.comtrade(args.country, args.year, commodity=args.commodity,
                    flow=args.flow, key=os.getenv("COMTRADE_API_KEY"))
         if not rows:
-            return {"status":"empty", "imported":0, "message":"Source has no matching records; no synthetic zeros"}
+            raise ValueError("Authenticated Comtrade final data produced no verified trade observation")
         data.initialize(args.db)
         return {"status":"imported","imported":data.save_trade(rows,args.db),"reporter":args.country,
-                "hs_code":sources.COMMODITIES[args.commodity][2],"coverage":"one_HS6_world_partner"}
+                "hs_code":sources.COMMODITIES[args.commodity][2],
+                "coverage":"one_HS6_world_partner",
+                "access_mode":"authenticated_final",
+                "redistribution_permission":"deployment_specific_review_required"}
     if args.command == "eia":
         key = os.getenv("EIA_API_KEY")
         rows = sources.eia_spot(args.series,start=args.start,end=args.end,key=key)

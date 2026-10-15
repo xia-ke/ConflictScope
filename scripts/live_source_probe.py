@@ -9,6 +9,7 @@ import argparse
 import json
 import os
 import sys
+import urllib.parse
 from pathlib import Path
 from datetime import datetime,timezone
 
@@ -29,6 +30,21 @@ def probe(name,call, *, expected=True):
         return {"source":name,"status":"failed","error_type":type(exc).__name__}
 
 
+def comtrade_classification_probe(classification):
+    if classification not in ("H5","H6","HS"):
+        raise ValueError("Invalid classification probe")
+    base="https://comtradeapi.un.org/public/v1/preview/C/A/"+classification
+    query=urllib.parse.urlencode({
+        "reporterCode":804,"period":2024,"partnerCode":0,
+        "cmdCode":"100199","flowCode":"X","maxRecords":10
+    })
+    body=market.fetch_json(base+"?"+query)
+    data=body.get("data")
+    if not isinstance(data,list):
+        raise ValueError("Unexpected Comtrade diagnostic format")
+    return data
+
+
 def check():
     checks=[
         probe("fred_brent_2022_daily",lambda:history.fred_csv(
@@ -38,7 +54,9 @@ def check():
         probe("worldbank_copper_2022_monthly",lambda:history.wb_xlsx(
             "Copper","2022-01-01","2022-12-31")),
         probe("uncomtrade_ukraine_wheat_export_2024",lambda:market.comtrade(
-            "UKR",2024,commodity="wheat",flow="export"))
+            "UKR",2024,commodity="wheat",flow="export")),
+        probe("uncomtrade_H6_preview_2024",lambda:comtrade_classification_probe("H6")),
+        probe("uncomtrade_HS_preview_2024",lambda:comtrade_classification_probe("HS"))
     ]
     # Distinguish an empty supplier response from provider verification success.
     for item in checks:

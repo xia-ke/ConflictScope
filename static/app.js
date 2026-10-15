@@ -108,7 +108,7 @@ function selectCountry(id,scroll=true){
   }
   if(scroll && window.matchMedia('(max-width:920px)').matches)$('country-detail').scrollIntoView({behavior:'smooth',block:'start'});
 }
-// Market P1 is read-only, explicitly incomplete, and never drives conflict coloring.
+// P1 market panel: source-scoped data, never inferred conflict causality.
 let marketToken=0;
 const money = v => Number(v).toLocaleString('zh-CN',{maximumFractionDigits:0});
 async function marketJSON(url){
@@ -119,22 +119,80 @@ async function marketJSON(url){
 async function loadMarket(country){
   const token=++marketToken;
   const status=$('market-status'),details=$('market-details'),prices=$('market-prices');
-  status.textContent='正在查询本地市场数据库…';details.replaceChildren();prices.replaceChildren();
+  status.textContent='正在查询本地市场数据库…';
+  details.replaceChildren();prices.replaceChildren();
   try{
-    const [trade, list]=await Promise.all([
+    const [trade,list]=await Promise.all([
       marketJSON('/api/trade/'+encodeURIComponent(country)),
       marketJSON('/api/prices')
     ]);
     if(token!==marketToken)return;
-    if(!Array.isArray(trade.rows)||!Array.isArray(list.series))throw new Error('Invalid market API');
+    if(!Array.isArray(trade.rows)||!Array.isArray(list.series))throw Error('Invalid market response');
     status.textContent='本地数据库 · 已跟踪 HS6 子集（非国家贸易全量）';
     if(trade.rows.length){
-      const heading=document.createElement('div');heading.className='market-caption';heading.textContent='已同步商品贸易 · 对世界合计';
-      details.append(heading);
+      const heading=document.createElement('div');
+      heading.className='market-caption';heading.textContent='已同步商品贸易 · 对世界合计';details.append(heading);
       for(const item of trade.rows.slice(0,4)){
         const row=document.createElement('div');row.className='market-record';
-        row.innerHTML='<span>'+esc(item.commodity)+'<small>'+esc(item.period_start?.slice(0,4))+' · '+esc(item.flow==='export'?'出口':'进口')+' · HS '+esc(item.hs_code)+'</small></span>'+
-          '<strong>if(!value)return '—';const d=new Date(value);return Number.isNaN(d.valueOf())?'—':d.toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});}
+        row.innerHTML='<span>'+esc(item.commodity)+'<small>'+esc(item.period_start?.slice(0,4))+' · '+
+          esc(item.flow==='export'?'出口':'进口')+' · HS '+esc(item.hs_code)+'</small></span>'+
+          '<strong>USD '+esc(money(item.value_usd))+'</strong>';
+        details.append(row);
+      }
+    }else{
+      details.innerHTML='<p class="market-empty">尚无已同步的贸易记录；缺失不代表零贸易。</p>';
+    }
+    const traded=new Set(trade.rows.map(x=>x.commodity_id));
+    const related=list.series.filter(x=>traded.has(x.commodity_id)&&Number(x.observation_count)>0);
+    if(!related.length){
+      prices.innerHTML='<p class="market-empty">此地区尚未建立与价格序列的对应关系。</p>';
+      return;
+    }
+    const heading=document.createElement('div');heading.className='market-caption';
+    heading.textContent='关联商品的国际价格基准（仅作并列展示）';prices.append(heading);
+    for(const series of related.slice(0,2)){
+      const doc=await marketJSON('/api/prices/'+encodeURIComponent(series.id));
+      if(token!==marketToken)return;
+      const obs=doc.observations;
+      if(!Array.isArray(obs)||!obs.length)continue;
+      const card=document.createElement('div');card.className='market-chart';
+      const info=document.createElement('div');info.className='market-record';
+      info.innerHTML='<span>'+esc(series.benchmark)+'<small>'+esc(series.frequency)+' · '+
+        esc(series.currency)+' / '+esc(series.unit)+'</small></span><strong>'+
+        esc(Number(obs[obs.length-1].value).toLocaleString('zh-CN',{maximumFractionDigits:2}))+'</strong>';
+      card.append(info);
+      const values=obs.slice(-80).map(x=>Number(x.value)).filter(Number.isFinite);
+      if(values.length>1){
+        const low=Math.min(...values),span=Math.max(...values)-low||1;
+        const path=values.map((v,i)=>(i?'L':'M')+(i*280/(values.length-1)).toFixed(1)+','+
+          (42-38*(v-low)/span).toFixed(1)).join(' ');
+        const svgChart=document.createElementNS(NS,'svg');
+        svgChart.setAttribute('viewBox','0 0 280 48');
+        svgChart.setAttribute('role','img');
+        svgChart.setAttribute('aria-label',series.benchmark+'历史价格趋势，不代表冲突因果影响');
+        const line=document.createElementNS(NS,'path');
+        line.setAttribute('d',path);line.setAttribute('class','market-sparkline');
+        svgChart.append(line);card.append(svgChart);
+      }
+      const foot=document.createElement('div');foot.className='market-caption';
+      foot.textContent=obs[0].observed_at+' — '+obs[obs.length-1].observed_at+' · '+doc.metadata.source_name;
+      card.append(foot);prices.append(card);
+    }
+  }catch(_error){
+    if(token!==marketToken)return;
+    status.textContent='市场数据未就绪；先运行 python sync_market.py init 并导入数据。';
+    details.replaceChildren();prices.replaceChildren();
+  }
+}
+function formatDate(value){
+  if(!value)return '—';
+  const d=new Date(value);
+  return Number.isNaN(d.valueOf())?'—':d.toLocaleString('zh-CN',{
+    timeZone:'Asia/Shanghai',month:'2-digit',day:'2-digit',hour:'2-digit',
+    minute:'2-digit',hour12:false
+  });
+}
+
 async function loadNews(force=false){
   const id=state.selected;if(!state.byId.has(id))return;
   const token=++state.request;state.news=null;$('refresh-news').disabled=true;$('refresh-news').textContent='↻ 获取中';

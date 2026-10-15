@@ -173,7 +173,9 @@ CREATE TABLE IF NOT EXISTS source_checks (
   last_success_at TEXT,
   latest_observation TEXT,
   fingerprint TEXT,
-  failure_code TEXT
+  failure_code TEXT,
+  review_pending INTEGER NOT NULL DEFAULT 0 CHECK(review_pending IN (0,1)),
+  review_acknowledged_at TEXT
 );
 CREATE TABLE IF NOT EXISTS sync_leases (
   name TEXT PRIMARY KEY,

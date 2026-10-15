@@ -44,6 +44,21 @@ jobs:
           assert result[0]["hs_code"]=="100199"
           assert result[0]["reporter"]=="UKR"
           assert result[0]["period_start"]=="2024-01-01"
-          print("Comtrade authenticated final API: one validated UKR/2024/wheat HS2017 world aggregate")
+          # Verify the real authenticated observation can also survive the P1
+          # transactional SQLite ingestion and read-only app query, in isolation.
+          import tempfile
+          from pathlib import Path
+          import market_data,geoeconomics
+          with tempfile.TemporaryDirectory(prefix="comtrade-contract-") as tmp:
+              db=Path(tmp)/"verified.sqlite3"
+              market_data.initialize(db)
+              assert market_data.save_trade(result,db)==1
+              assert market_data.save_trade(result,db)==1
+              report=market_data.trade_by_country("UKR",year=2024,flow="export",path=db)
+              assert len(report["rows"])==1
+              assert report["rows"][0]["hs_revision"]=="HS2017"
+              assert report["rows"][0]["hs_code"]=="100199"
+              assert geoeconomics.status(db)["tables"]["trade_flows"]==1
+          print("Comtrade authorized final API -> temporary SQLite -> app query: validated")
           print("No trade values logged; API access does not grant data redistribution permission.")
           PY

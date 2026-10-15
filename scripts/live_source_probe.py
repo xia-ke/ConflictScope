@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Bounded, non-mutating public source contract probes for release acceptance.
 
-No API keys or market data are logged. Nonzero exit in --strict mode means at
+API keys, returned trade values and market prices are never logged. Nonzero exit in --strict mode means at
 least one public source has NOT been verified in this environment. For provider
 usage/redistribution consult original terms independently.
 """
@@ -30,20 +30,6 @@ def probe(name,call, *, expected=True):
         return {"source":name,"status":"failed","error_type":type(exc).__name__}
 
 
-def comtrade_classification_probe(classification):
-    if classification not in ("H5","H6","HS"):
-        raise ValueError("Invalid classification probe")
-    base="https://comtradeapi.un.org/public/v1/preview/C/A/"+classification
-    query=urllib.parse.urlencode({
-        "reporterCode":804,"period":2024,"partnerCode":0,
-        "cmdCode":"100199","flowCode":"X","maxRecords":10
-    })
-    body=market.fetch_json(base+"?"+query)
-    data=body.get("data")
-    if not isinstance(data,list):
-        raise ValueError("Unexpected Comtrade diagnostic format")
-    return data
-
 
 def check():
     checks=[
@@ -53,11 +39,19 @@ def check():
             "PWHEAMTUSDM","2022-06-01","2022-12-31")),
         probe("worldbank_copper_2022_monthly",lambda:history.wb_xlsx(
             "Copper","2022-01-01","2022-12-31")),
-        probe("uncomtrade_ukraine_wheat_export_2024",lambda:market.comtrade(
-            "UKR",2024,commodity="wheat",flow="export")),
-        probe("uncomtrade_H6_preview_2024",lambda:comtrade_classification_probe("H6")),
-        probe("uncomtrade_HS_preview_2024",lambda:comtrade_classification_probe("HS"))
     ]
+    # Preview is a diagnostic only. No returned trade value may be imported.
+    preview=probe("comtrade_public_preview_diagnostic",
+        lambda:[market.comtrade_preview_diagnostic("UKR",2024,commodity="wheat")])
+    preview["scope"]="connectivity_only_not_final_trade"
+    checks.append(preview)
+    if os.getenv("COMTRADE_API_KEY"):
+        checks.append(probe("comtrade_authenticated_final_ukr_wheat_2024",
+            lambda:market.comtrade("UKR",2024,commodity="wheat",flow="export",
+                                  key=os.environ["COMTRADE_API_KEY"])))
+    else:
+        checks.append({"source":"comtrade_authenticated_final_ukr_wheat_2024",
+                       "status":"skipped","reason":"COMTRADE_API_KEY missing; final Data API not verified"})
     # Distinguish an empty supplier response from provider verification success.
     for item in checks:
         if item["status"]=="passed" and item["count"]<=0:
@@ -86,12 +80,17 @@ def check():
 
 def main(argv=None):
     cli=argparse.ArgumentParser(description="ConflictScope live-source acceptance probe")
+    cli.add_argument("--require-comtrade",action="store_true",
+                     help="Release gate: fail if authenticated Comtrade import not verified")
     cli.add_argument("--strict",action="store_true",
                      help="Exit 1 when any attempted public source is unavailable")
     args=cli.parse_args(argv)
     data=check()
     print(json.dumps(data,ensure_ascii=False,indent=2))
-    return 1 if args.strict and data["failed"] else 0
+    comtrade=next(x for x in data["results"]
+                   if x["source"]=="comtrade_authenticated_final_ukr_wheat_2024")
+    return 1 if (args.strict and data["failed"]) or (
+        args.require_comtrade and comtrade["status"]!="passed") else 0
 
 
 if __name__=="__main__":

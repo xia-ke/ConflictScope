@@ -33,6 +33,13 @@ COMMODITIES = {
 REPORTERS = {"UKR": 804, "RUS": 643, "COD": 180, "YEM": 887, "SDN": 729}
 HS_REVISION = "HS2017"
 COMTRADE_CLASSIFICATION = "H5"
+# Explicitly reviewed cross-revision HS6 mapping. Do not silently reclassify
+# an annual series or substitute another HS revision after an empty response.
+# HS2022 100199 is confirmed in the WCO 2022 Chapter 10 nomenclature.
+HS_REVISION_CODES = {
+    "HS2017": ("H5", {key: item[2] for key,item in COMMODITIES.items()}),
+    "HS2022": ("H6", {"wheat":"100199"}),
+}
 
 
 def retrieved_at():
@@ -75,8 +82,9 @@ def fetch_json(url, **kwargs):
     return doc
 
 
-def comtrade(reporter, year, *, commodity, flow="export", key=None, loader=fetch_json):
-    """Fetch ONE exact HS2017/HS6 world aggregate from authenticated final Data API.
+def comtrade(reporter, year, *, commodity, flow="export", hs_revision="HS2017",
+             key=None, loader=fetch_json):
+    """Fetch ONE exact explicitly selected HS6 world aggregate from final Data API.
 
     Preview is intentionally never persisted: it may be partial or empty and cannot
     establish a zero trade total. Free UN Comtrade B2C API keys support data/v1/get;
@@ -88,7 +96,10 @@ def comtrade(reporter, year, *, commodity, flow="export", key=None, loader=fetch
         raise ValueError("Invalid year or trade flow")
     if not isinstance(key,str) or not key.strip() or "\r" in key or "\n" in key:
         raise ValueError("COMTRADE_API_KEY required for complete final trade data (preview cannot be imported)")
-    cmd = COMMODITIES[commodity][2]
+    if hs_revision not in HS_REVISION_CODES or commodity not in HS_REVISION_CODES[hs_revision][1]:
+        raise ValueError("Requested HS revision/commodity mapping has not been verified")
+    classification, mapping = HS_REVISION_CODES[hs_revision]
+    cmd = mapping[commodity]
     params = {
         "reporterCode":REPORTERS[reporter],
         "period":year,
@@ -100,7 +111,7 @@ def comtrade(reporter, year, *, commodity, flow="export", key=None, loader=fetch
         "motCode":0,
         "maxrecords":500,
     }
-    url=("https://comtradeapi.un.org/data/v1/get/C/A/"+COMTRADE_CLASSIFICATION+
+    url=("https://comtradeapi.un.org/data/v1/get/C/A/"+classification+
          "?"+urllib.parse.urlencode(params))
     body=loader(url,headers={"Ocp-Apim-Subscription-Key":key})
     if not isinstance(body,dict) or body.get("error") not in (None,"","null"):
@@ -126,7 +137,7 @@ def comtrade(reporter, year, *, commodity, flow="export", key=None, loader=fetch
         str(row.get("partnerCode"))!="0" or
         str(row.get("cmdCode")).zfill(6)!=cmd or
         str(row.get("flowCode"))!=("X" if flow=="export" else "M") or
-        row.get("classificationCode",COMTRADE_CLASSIFICATION)!=COMTRADE_CLASSIFICATION or
+        row.get("classificationCode",classification)!=classification or
         str(row.get("partner2Code",0))!="0" or
         str(row.get("motCode",0))!="0" or
         str(row.get("customsCode","C00"))!="C00"):
@@ -151,7 +162,7 @@ def comtrade(reporter, year, *, commodity, flow="export", key=None, loader=fetch
     return [{
         "reporter":reporter,"partner":None,"flow":flow,
         "period_start":f"{year}-01-01","period_type":"annual",
-        "hs_revision":HS_REVISION,"hs_code":cmd,"value_usd":value,
+        "hs_revision":hs_revision,"hs_code":cmd,"value_usd":value,
         "quantity":qty,"quantity_unit":"kg" if qty is not None else None
     }]
 

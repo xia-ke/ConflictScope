@@ -1,0 +1,524 @@
+{
+  "format": "conflictscope.events.v1",
+  "sources": [
+    {
+      "id": "un-secretariat",
+      "name": "United Nations Secretariat",
+      "homepage_url": "https://www.un.org/",
+      "access_type": "public",
+      "license_note": "Official public UN statements; check individual reuse conditions."
+    },
+    {
+      "id": "eu-council",
+      "name": "Council of the European Union",
+      "homepage_url": "https://www.consilium.europa.eu/",
+      "access_type": "public",
+      "license_note": "EU Council press releases; review official usage policy."
+    },
+    {
+      "id": "us-ofac",
+      "name": "U.S. Treasury OFAC",
+      "homepage_url": "https://ofac.treasury.gov/",
+      "access_type": "public",
+      "license_note": "US Treasury official policy/FAQ; citation does not replace controlling law."
+    },
+    {
+      "id": "imo",
+      "name": "International Maritime Organization",
+      "homepage_url": "https://www.imo.org/",
+      "access_type": "public",
+      "license_note": "Official IMO statements; event dates limited to what is in the statement."
+    },
+    {
+      "id": "unctad",
+      "name": "UN Trade and Development (UNCTAD)",
+      "homepage_url": "https://unctad.org/",
+      "access_type": "public",
+      "license_note": "Official UNCTAD reporting; dated estimates are not exact disruption onset."
+    }
+  ],
+  "events": [
+    {
+      "id": "ukr-2022-02-24-military-offensive",
+      "title": "俄罗斯对乌克兰展开大规模军事行动",
+      "event_type": "armed_conflict",
+      "verification_status": "official",
+      "source_id": "un-secretariat",
+      "source_url": "https://press.un.org/en/2022/sgsm21158.doc.htm",
+      "occurred_at": "2022-02-24",
+      "announced_at": null,
+      "effective_at": null,
+      "published_at": "2022-02-24",
+      "date_precision": "day",
+      "description": "联合国秘书长2022年2月24日指出俄罗斯在乌克兰主权领土内展开规模空前的军事行动。事件是军事背景节点；不意味着可将当天全部国际价格变动归因于冲突。",
+      "review": {
+        "decision": "approved",
+        "reviewer": "AI-assisted official-source research (NOT a human editor)",
+        "reviewed_at": "2026-10-15",
+        "note": "AI-assisted comparison with official institutional source; no human editorial sign-off. Include as research-vetted evidence, not independently certified historical record."
+      },
+      "evidence": [
+        {
+          "source_id": "un-secretariat",
+          "url": "https://press.un.org/en/2022/sgsm21158.doc.htm",
+          "role": "primary",
+          "published_at": "2022-02-24",
+          "note": ""
+        },
+        {
+          "source_id": "un-secretariat",
+          "url": "https://www.un.org/sg/en/content/sg/statements/2022-06-03/statement-the-secretary-general-the-100th-day-of-the-war-ukraine",
+          "role": "corroborating",
+          "published_at": "2022-06-03",
+          "note": "联合国6月3日声明追述2月24日入侵日期。"
+        }
+      ],
+      "links": [
+        {
+          "country_id": "UKR",
+          "commodity_id": "wheat",
+          "impact_mechanism": "undetermined",
+          "evidence_url": "https://press.un.org/en/2022/sgsm21158.doc.htm",
+          "evidence_note": "乌克兰的农业贸易背景相关；该声明不能独立证明小麦出口受到特定幅度冲击。"
+        },
+        {
+          "country_id": "RUS",
+          "impact_mechanism": "undetermined",
+          "evidence_url": "https://press.un.org/en/2022/sgsm21158.doc.htm",
+          "evidence_note": "俄罗斯作为军事行动一方；不是对其全国供应链损失的量化结论。"
+        }
+      ]
+    },
+    {
+      "id": "eu-2022-06-03-sixth-oil-sanctions",
+      "title": "欧盟宣布第六轮对俄制裁：逐步限制俄罗斯石油进口",
+      "event_type": "sanction",
+      "verification_status": "official",
+      "source_id": "eu-council",
+      "source_url": "https://www.consilium.europa.eu/en/press/press-releases/2022/06/03/russia-s-aggression-against-ukraine-eu-adopts-sixth-package-of-sanctions/",
+      "occurred_at": null,
+      "announced_at": "2022-06-03",
+      "effective_at": null,
+      "published_at": "2022-06-03",
+      "date_precision": "day",
+      "description": "欧盟理事会公布对俄原油和特定成品油采购、进口及转运的阶段性禁令；原油与成品油分别设定过渡期，并存在管道及部分国家例外。具体船运限制不能误记为6月3日全部生效。",
+      "review": {
+        "decision": "approved",
+        "reviewer": "AI-assisted official-source research (NOT a human editor)",
+        "reviewed_at": "2026-10-15",
+        "note": "AI-assisted comparison with official institutional source; no human editorial sign-off. Include as research-vetted evidence, not independently certified historical record."
+      },
+      "evidence": [
+        {
+          "source_id": "eu-council",
+          "url": "https://www.consilium.europa.eu/en/press/press-releases/2022/06/03/russia-s-aggression-against-ukraine-eu-adopts-sixth-package-of-sanctions/",
+          "role": "primary",
+          "published_at": "2022-06-03",
+          "note": ""
+        }
+      ],
+      "links": [
+        {
+          "country_id": "RUS",
+          "commodity_id": "oil",
+          "impact_mechanism": "sanctions",
+          "evidence_url": "https://www.consilium.europa.eu/en/press/press-releases/2022/06/03/russia-s-aggression-against-ukraine-eu-adopts-sixth-package-of-sanctions/",
+          "evidence_note": "原油商品关联明确。第六轮措施含过渡期、管道及国别例外。"
+        }
+      ]
+    },
+    {
+      "id": "ukr-2022-07-22-blacksea-grain-deal",
+      "title": "黑海粮食倡议在伊斯坦布尔签署",
+      "event_type": "recovery",
+      "verification_status": "official",
+      "source_id": "un-secretariat",
+      "source_url": "https://www.un.org/sg/en/content/highlight/2022-07-22.html",
+      "occurred_at": null,
+      "announced_at": "2022-07-22",
+      "effective_at": null,
+      "published_at": "2022-07-22",
+      "date_precision": "day",
+      "description": "联合国与相关方宣布达成经乌克兰敖德萨、切尔诺莫斯克与尤日内/皮夫登内港口的粮食安全运输机制。签署日不是所有港口恢复全部出货量的日期。",
+      "review": {
+        "decision": "approved",
+        "reviewer": "AI-assisted official-source research (NOT a human editor)",
+        "reviewed_at": "2026-10-15",
+        "note": "AI-assisted comparison with official institutional source; no human editorial sign-off. Include as research-vetted evidence, not independently certified historical record."
+      },
+      "evidence": [
+        {
+          "source_id": "un-secretariat",
+          "url": "https://www.un.org/sg/en/content/highlight/2022-07-22.html",
+          "role": "primary",
+          "published_at": "2022-07-22",
+          "note": ""
+        },
+        {
+          "source_id": "un-secretariat",
+          "url": "https://www.un.org/en/black-sea-grain-initiative/achievements",
+          "role": "corroborating",
+          "published_at": null,
+          "note": "联合国倡议成果页面确认具体港口与参与机制。"
+        }
+      ],
+      "links": [
+        {
+          "country_id": "UKR",
+          "commodity_id": "wheat",
+          "infrastructure_label": "Black Sea grain corridor",
+          "impact_mechanism": "logistics",
+          "evidence_url": "https://www.un.org/sg/en/content/highlight/2022-07-22.html",
+          "evidence_note": "该倡议覆盖多种谷物与食品，小麦是其中之一。"
+        }
+      ]
+    },
+    {
+      "id": "ukr-2022-08-01-first-grain-vessel",
+      "title": "黑海粮食倡议下首艘商业运粮船离开敖德萨",
+      "event_type": "recovery",
+      "verification_status": "official",
+      "source_id": "un-secretariat",
+      "source_url": "https://turkiye.un.org/en/192939-statement-attributable-spokesperson-secretary-general-first-commercial-vessel-sailing-part",
+      "occurred_at": "2022-08-01",
+      "announced_at": null,
+      "effective_at": null,
+      "published_at": "2022-08-01",
+      "date_precision": "day",
+      "description": "联合国确认 Razoni 号于8月1日从敖德萨起航，载有26,527吨玉米前往黎巴嫩的黎波里港。这是玉米运输记录，不应错误标记为小麦专船。",
+      "review": {
+        "decision": "approved",
+        "reviewer": "AI-assisted official-source research (NOT a human editor)",
+        "reviewed_at": "2026-10-15",
+        "note": "AI-assisted comparison with official institutional source; no human editorial sign-off. Include as research-vetted evidence, not independently certified historical record."
+      },
+      "evidence": [
+        {
+          "source_id": "un-secretariat",
+          "url": "https://turkiye.un.org/en/192939-statement-attributable-spokesperson-secretary-general-first-commercial-vessel-sailing-part",
+          "role": "primary",
+          "published_at": "2022-08-01",
+          "note": ""
+        }
+      ],
+      "links": [
+        {
+          "country_id": "UKR",
+          "infrastructure_label": "Odesa port",
+          "impact_mechanism": "logistics",
+          "evidence_url": "https://turkiye.un.org/en/192939-statement-attributable-spokesperson-secretary-general-first-commercial-vessel-sailing-part",
+          "evidence_note": "原始记录确认船舶、起运港、日期与玉米货物。"
+        }
+      ]
+    },
+    {
+      "id": "rus-2022-12-05-crude-price-cap",
+      "title": "对俄罗斯海运原油实施60美元/桶价格上限",
+      "event_type": "sanction",
+      "verification_status": "official",
+      "source_id": "eu-council",
+      "source_url": "https://www.consilium.europa.eu/en/press/press-releases/2022/12/03/russian-oil-eu-agrees-on-level-of-price-cap/",
+      "occurred_at": null,
+      "announced_at": "2022-12-03",
+      "effective_at": "2022-12-05",
+      "published_at": "2022-12-03",
+      "date_precision": "day",
+      "description": "欧盟理事会12月3日公告俄源原油60美元/桶价格上限，自12月5日起适用，主要通过海运及相关服务限制执行；不同法律辖区和过渡安排需分别核实。",
+      "review": {
+        "decision": "approved",
+        "reviewer": "AI-assisted official-source research (NOT a human editor)",
+        "reviewed_at": "2026-10-15",
+        "note": "AI-assisted comparison with official institutional source; no human editorial sign-off. Include as research-vetted evidence, not independently certified historical record."
+      },
+      "evidence": [
+        {
+          "source_id": "eu-council",
+          "url": "https://www.consilium.europa.eu/en/press/press-releases/2022/12/03/russian-oil-eu-agrees-on-level-of-price-cap/",
+          "role": "primary",
+          "published_at": "2022-12-03",
+          "note": ""
+        },
+        {
+          "source_id": "us-ofac",
+          "url": "https://ofac.treasury.gov/faqs/1094",
+          "role": "corroborating",
+          "published_at": null,
+          "note": "OFAC FAQ明确12月5日生效及过渡船货规则。"
+        }
+      ],
+      "links": [
+        {
+          "country_id": "RUS",
+          "commodity_id": "oil",
+          "impact_mechanism": "sanctions",
+          "evidence_url": "https://www.consilium.europa.eu/en/press/press-releases/2022/12/03/russian-oil-eu-agrees-on-level-of-price-cap/",
+          "evidence_note": "CN 2709 00 原油；此为监管上限，不能等同全球Brent市场价格。"
+        }
+      ]
+    },
+    {
+      "id": "rus-2023-02-05-petroleum-product-cap",
+      "title": "对俄罗斯海运石油产品启动差别价格上限",
+      "event_type": "sanction",
+      "verification_status": "official",
+      "source_id": "eu-council",
+      "source_url": "https://www.consilium.europa.eu/en/press/press-releases/2023/02/04/eu-agrees-on-level-of-price-caps-for-russian-petroleum-products/",
+      "occurred_at": null,
+      "announced_at": "2023-02-04",
+      "effective_at": "2023-02-05",
+      "published_at": "2023-02-04",
+      "date_precision": "day",
+      "description": "欧盟理事会2月4日公布俄罗斯石油产品双档价格上限：低于原油价格交易品种45美元/桶，高于原油价格交易品种100美元/桶，2月5日起适用。与原油270900不属于同一产品编码。",
+      "review": {
+        "decision": "approved",
+        "reviewer": "AI-assisted official-source research (NOT a human editor)",
+        "reviewed_at": "2026-10-15",
+        "note": "AI-assisted comparison with official institutional source; no human editorial sign-off. Include as research-vetted evidence, not independently certified historical record."
+      },
+      "evidence": [
+        {
+          "source_id": "eu-council",
+          "url": "https://www.consilium.europa.eu/en/press/press-releases/2023/02/04/eu-agrees-on-level-of-price-caps-for-russian-petroleum-products/",
+          "role": "primary",
+          "published_at": "2023-02-04",
+          "note": ""
+        }
+      ],
+      "links": [
+        {
+          "country_id": "RUS",
+          "infrastructure_label": "Seaborne refined petroleum transport",
+          "impact_mechanism": "sanctions",
+          "evidence_url": "https://www.consilium.europa.eu/en/press/press-releases/2023/02/04/eu-agrees-on-level-of-price-caps-for-russian-petroleum-products/",
+          "evidence_note": "成品油适用CN 2710，不能误映射至数据库中的原油270900。"
+        }
+      ]
+    },
+    {
+      "id": "ukr-2023-07-17-grain-initiative-ends",
+      "title": "俄罗斯决定终止执行黑海粮食倡议",
+      "event_type": "logistics_disruption",
+      "verification_status": "official",
+      "source_id": "un-secretariat",
+      "source_url": "https://www.un.org/sg/en/content/highlight/2023-07-17.html",
+      "occurred_at": null,
+      "announced_at": "2023-07-17",
+      "effective_at": "2023-07-17",
+      "published_at": "2023-07-17",
+      "date_precision": "day",
+      "description": "联合国7月17日声明对俄罗斯终止倡议、撤回黑海西北部航行安全保障的决定表示遗憾。该记录不代表所有乌克兰农产品出口在当日彻底停止。",
+      "review": {
+        "decision": "approved",
+        "reviewer": "AI-assisted official-source research (NOT a human editor)",
+        "reviewed_at": "2026-10-15",
+        "note": "AI-assisted comparison with official institutional source; no human editorial sign-off. Include as research-vetted evidence, not independently certified historical record."
+      },
+      "evidence": [
+        {
+          "source_id": "un-secretariat",
+          "url": "https://www.un.org/sg/en/content/highlight/2023-07-17.html",
+          "role": "primary",
+          "published_at": "2023-07-17",
+          "note": ""
+        },
+        {
+          "source_id": "un-secretariat",
+          "url": "https://www.un.org/sg/en/content/sg/statements/2023-07-17/secretary-generals-press-encounter-the-black-sea-initiative",
+          "role": "corroborating",
+          "published_at": "2023-07-17",
+          "note": "秘书长当日声明。"
+        }
+      ],
+      "links": [
+        {
+          "country_id": "UKR",
+          "commodity_id": "wheat",
+          "infrastructure_label": "Black Sea grain corridor",
+          "impact_mechanism": "logistics",
+          "evidence_url": "https://www.un.org/sg/en/content/highlight/2023-07-17.html",
+          "evidence_note": "原倡议涉及粮食出口运输机制，小麦是涵盖的品种之一。"
+        },
+        {
+          "country_id": "RUS",
+          "impact_mechanism": "logistics",
+          "evidence_url": "https://www.un.org/sg/en/content/highlight/2023-07-17.html",
+          "evidence_note": "俄方的决定是本事件的政策/物流关系，不等于俄罗斯港口停运。"
+        }
+      ]
+    },
+    {
+      "id": "redsea-2024-01-03-imo-shipping-threat",
+      "title": "国际海事组织向安理会报告红海商船遇袭风险",
+      "event_type": "logistics_disruption",
+      "verification_status": "official",
+      "source_id": "imo",
+      "source_url": "https://www.imo.org/en/mediacentre/secretarygeneral/pages/maintenance-of-international-peace-and-security-%E2%80%93-united-nations-security-council%2C-9525th-meeting.aspx",
+      "occurred_at": null,
+      "announced_at": null,
+      "effective_at": null,
+      "published_at": "2024-01-03",
+      "date_precision": "day",
+      "description": "IMO秘书长1月3日向安理会报告自2023年11月以来红海发生多起针对国际船舶的袭击。1月3日是IMO报告日，而不是首次袭击日；事件采用发布日期定位。",
+      "review": {
+        "decision": "approved",
+        "reviewer": "AI-assisted official-source research (NOT a human editor)",
+        "reviewed_at": "2026-10-15",
+        "note": "AI-assisted comparison with official institutional source; no human editorial sign-off. Include as research-vetted evidence, not independently certified historical record."
+      },
+      "evidence": [
+        {
+          "source_id": "imo",
+          "url": "https://www.imo.org/en/mediacentre/secretarygeneral/pages/maintenance-of-international-peace-and-security-%E2%80%93-united-nations-security-council%2C-9525th-meeting.aspx",
+          "role": "primary",
+          "published_at": "2024-01-03",
+          "note": ""
+        },
+        {
+          "source_id": "unctad",
+          "url": "https://unctad.org/press-material/unctad-raises-alarms-escalating-disruptions-global-trade-due-geopolitical-tensions",
+          "role": "corroborating",
+          "published_at": "2024-01-26",
+          "note": "UNCTAD将红海航运干扰与胡塞武装相关袭击联系起来。"
+        }
+      ],
+      "links": [
+        {
+          "country_id": "YEM",
+          "infrastructure_label": "Red Sea shipping route",
+          "impact_mechanism": "logistics",
+          "evidence_url": "https://www.imo.org/en/mediacentre/secretarygeneral/pages/maintenance-of-international-peace-and-security-%E2%80%93-united-nations-security-council%2C-9525th-meeting.aspx",
+          "evidence_note": "与也门周边红海局势关联；这不表示袭击发生在也门陆地。"
+        }
+      ]
+    },
+    {
+      "id": "redsea-2024-01-26-unctad-transit-alert",
+      "title": "UNCTAD报告红海局势造成苏伊士运河航运缩减",
+      "event_type": "logistics_disruption",
+      "verification_status": "official",
+      "source_id": "unctad",
+      "source_url": "https://unctad.org/press-material/unctad-raises-alarms-escalating-disruptions-global-trade-due-geopolitical-tensions",
+      "occurred_at": null,
+      "announced_at": "2024-01-26",
+      "effective_at": null,
+      "published_at": "2024-01-26",
+      "date_precision": "day",
+      "description": "UNCTAD于1月26日公布：苏伊士运河周通航量在此前约两个月下降约42%，集装箱船周通航量同比显著下降。这是观测汇总的公布日，不是通航减少首次发生日。",
+      "review": {
+        "decision": "approved",
+        "reviewer": "AI-assisted official-source research (NOT a human editor)",
+        "reviewed_at": "2026-10-15",
+        "note": "AI-assisted comparison with official institutional source; no human editorial sign-off. Include as research-vetted evidence, not independently certified historical record."
+      },
+      "evidence": [
+        {
+          "source_id": "unctad",
+          "url": "https://unctad.org/press-material/unctad-raises-alarms-escalating-disruptions-global-trade-due-geopolitical-tensions",
+          "role": "primary",
+          "published_at": "2024-01-26",
+          "note": ""
+        },
+        {
+          "source_id": "unctad",
+          "url": "https://unctad.org/news/red-sea-black-sea-and-panama-canal-unctad-raises-alarm-global-trade-disruptions",
+          "role": "corroborating",
+          "published_at": "2024-01-26",
+          "note": "UNCTAD同日新闻解读包含约42%降幅。"
+        }
+      ],
+      "links": [
+        {
+          "country_id": "YEM",
+          "infrastructure_label": "Suez Canal / Red Sea corridor",
+          "impact_mechanism": "logistics",
+          "evidence_url": "https://unctad.org/press-material/unctad-raises-alarms-escalating-disruptions-global-trade-due-geopolitical-tensions",
+          "evidence_note": "危机与红海胡塞相关袭击关联，非也门国内运输设施停运。"
+        }
+      ]
+    },
+    {
+      "id": "rus-2024-04-12-us-metals-restrictions",
+      "title": "美国宣布俄罗斯铝、铜、镍进口及特定交易服务限制",
+      "event_type": "sanction",
+      "verification_status": "official",
+      "source_id": "us-ofac",
+      "source_url": "https://ofac.treasury.gov/faqs/1168",
+      "occurred_at": null,
+      "announced_at": "2024-04-12",
+      "effective_at": "2024-04-12",
+      "published_at": "2024-04-12",
+      "date_precision": "day",
+      "description": "OFAC于4月12日公布针对俄罗斯铝、铜、镍的进口及特定金属交易服务限制。对2024年4月13日之前生产的金属存在例外，不能将其表述为所有俄罗斯铜在全球一律禁运。",
+      "review": {
+        "decision": "approved",
+        "reviewer": "AI-assisted official-source research (NOT a human editor)",
+        "reviewed_at": "2026-10-15",
+        "note": "AI-assisted comparison with official institutional source; no human editorial sign-off. Include as research-vetted evidence, not independently certified historical record."
+      },
+      "evidence": [
+        {
+          "source_id": "us-ofac",
+          "url": "https://ofac.treasury.gov/faqs/1168",
+          "role": "primary",
+          "published_at": "2024-04-12",
+          "note": ""
+        },
+        {
+          "source_id": "us-ofac",
+          "url": "https://ofac.treasury.gov/recent-actions/20240412_33",
+          "role": "corroborating",
+          "published_at": "2024-04-12",
+          "note": "OFAC当日正式发布公告及相关决定。"
+        }
+      ],
+      "links": [
+        {
+          "country_id": "RUS",
+          "commodity_id": "copper",
+          "impact_mechanism": "sanctions",
+          "evidence_url": "https://ofac.treasury.gov/faqs/1168",
+          "evidence_note": "OFAC措施涉及铜这一金属大类；数据库铜HS 740311是更窄的商品子类。"
+        }
+      ]
+    },
+    {
+      "id": "redsea-2024-08-28-imo-sounion-statement",
+      "title": "IMO就红海 Sounion 油轮遇袭发表声明",
+      "event_type": "logistics_disruption",
+      "verification_status": "official",
+      "source_id": "imo",
+      "source_url": "https://www.imo.org/en/MediaCentre/SecretaryGeneral/Pages/Statement-MV-SOUNION.aspx",
+      "occurred_at": null,
+      "announced_at": null,
+      "effective_at": null,
+      "published_at": "2024-08-28",
+      "date_precision": "day",
+      "description": "IMO8月28日就此前在红海南部受袭的Sounion油轮发表声明，称该船载有约15万吨原油。来源只将攻击描述为recent attack；这里不把8月28日误作实际袭击日期。",
+      "review": {
+        "decision": "approved",
+        "reviewer": "AI-assisted official-source research (NOT a human editor)",
+        "reviewed_at": "2026-10-15",
+        "note": "AI-assisted comparison with official institutional source; no human editorial sign-off. Include as research-vetted evidence, not independently certified historical record."
+      },
+      "evidence": [
+        {
+          "source_id": "imo",
+          "url": "https://www.imo.org/en/MediaCentre/SecretaryGeneral/Pages/Statement-MV-SOUNION.aspx",
+          "role": "primary",
+          "published_at": "2024-08-28",
+          "note": ""
+        }
+      ],
+      "links": [
+        {
+          "country_id": "YEM",
+          "commodity_id": "oil",
+          "infrastructure_label": "Southern Red Sea maritime route",
+          "impact_mechanism": "logistics",
+          "evidence_url": "https://www.imo.org/en/MediaCentre/SecretaryGeneral/Pages/Statement-MV-SOUNION.aspx",
+          "evidence_note": "船载原油相关的红海航线风险；不证明对全球原油价格造成影响。"
+        }
+      ]
+    }
+  ]
+}

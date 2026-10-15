@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ConflictScope V3 geoeconomic schema and offline initialization (standard library).
 
-P0 only: no network requests, external dataset imports, or inferred price impacts.
+P0/P2: offline, provenance-first storage; no inferred conflict/price causality.
 All business tables are independent of the existing map/news HTTP endpoints.
 """
 import argparse
@@ -11,10 +11,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_DB = ROOT / "data" / "geoeconomics.sqlite3"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 TABLES = (
     "countries", "data_sources", "commodities", "commodity_hs_codes",
     "price_series", "price_observations", "trade_flows", "events", "event_links",
+    "event_evidence", "event_reviews",
 )
 
 SCHEMA = """
@@ -131,6 +132,26 @@ CREATE TABLE IF NOT EXISTS event_links (
 );
 CREATE INDEX IF NOT EXISTS idx_event_links_country ON event_links(country_id);
 CREATE INDEX IF NOT EXISTS idx_event_links_commodity ON event_links(commodity_id);
+-- P2 additive migration: multiple sourced references and explicit editorial approval.
+CREATE TABLE IF NOT EXISTS event_evidence (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event_id TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  source_id TEXT NOT NULL REFERENCES data_sources(id),
+  url TEXT NOT NULL,
+  evidence_role TEXT NOT NULL CHECK(evidence_role IN ('primary','corroborating','context')),
+  published_at TEXT,
+  source_note TEXT NOT NULL DEFAULT '',
+  UNIQUE(event_id, source_id, url)
+);
+CREATE INDEX IF NOT EXISTS idx_event_evidence_event ON event_evidence(event_id);
+CREATE TABLE IF NOT EXISTS event_reviews (
+  event_id TEXT PRIMARY KEY REFERENCES events(id) ON DELETE CASCADE,
+  reviewer TEXT NOT NULL CHECK(length(trim(reviewer)) > 0),
+  reviewed_at TEXT NOT NULL,
+  review_note TEXT NOT NULL DEFAULT '',
+  input_sha256 TEXT NOT NULL CHECK(length(input_sha256) = 64),
+  approval_state TEXT NOT NULL CHECK(approval_state = 'approved')
+);
 """
 
 
@@ -148,10 +169,10 @@ def connect(path=DEFAULT_DB, *, readonly=False):
 
 
 def initialize(path=DEFAULT_DB, *, seed_countries=True):
-    """Idempotent v1 schema creation. No destructive migration or remote fetching."""
+    """Idempotent additive v0/v1 to v2 migration. No destructive changes or remote fetch."""
     with connect(path) as conn:
         current = conn.execute("PRAGMA user_version").fetchone()[0]
-        if current not in (0, SCHEMA_VERSION):
+        if current not in (0, 1, SCHEMA_VERSION):
             raise RuntimeError(f"Unsupported database schema version: {current}")
         conn.executescript(SCHEMA)
         if seed_countries:

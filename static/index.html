@@ -37,6 +37,36 @@
         <div id="market-prices"></div>
         <p class="market-disclaimer">仅显示已同步的 HS6 商品贸易与独立市场价格，不构成完整出口排名或冲突致价证据。</p>
       </section>
+      <section class="timeline-section" aria-label="冲突与贸易重大事件时间轴">
+        <div class="timeline-header"><h3>重大事件时间轴</h3><span>P2 · 来源核查事件</span></div>
+        <div class="timeline-controls">
+          <label>日期基准
+            <select id="timeline-basis" aria-label="事件日期基准">
+              <option value="impact">影响时间（按事件类型选择）</option>
+              <option value="occurred">发生时间</option>
+              <option value="announced">公告时间</option>
+              <option value="effective">生效时间</option>
+              <option value="published">来源发布时间</option>
+            </select>
+          </label>
+          <label>事件类型
+            <select id="timeline-type" aria-label="事件类型">
+              <option value="">全部轨道</option>
+              <option value="armed_conflict">冲突升级</option>
+              <option value="ceasefire">停火</option>
+              <option value="sanction">制裁</option>
+              <option value="embargo">禁运</option>
+              <option value="logistics_disruption">物流中断</option>
+              <option value="production_disruption">生产中断</option>
+              <option value="trade_policy">贸易政策</option>
+              <option value="recovery">供应恢复</option>
+            </select>
+          </label>
+        </div>
+        <div id="timeline-status" class="timeline-status" role="status" aria-live="polite">请选择观察地区</div>
+        <div id="timeline-events" class="timeline-events"></div>
+        <p class="timeline-note">时间轴展示有官方来源和审查记录的事件。AI辅助整理的记录尚未完成人工复核；四类日期分别保存，价格波动不能据此认定由冲突造成。</p>
+      </section>
       <div class="news-heading"><h3>相关新闻</h3><button id="refresh-news" class="text-button">↻ 刷新</button></div>
       <div class="news-controls"><select id="days" aria-label="新闻时间范围"><option value="7">最近 7 天</option><option value="30" selected>最近 30 天</option><option value="90">最近 90 天</option></select><select id="source-kind" aria-label="新闻来源类型"><option value="all">全部来源</option><option value="official">联合国新闻</option><option value="media">媒体报道</option></select></div>
       <div id="news-status" class="news-status" role="status" aria-live="polite"></div><div id="provider-status" class="provider-status" aria-label="新闻源状态"></div><div id="articles" class="articles"></div>
@@ -47,4 +77,5 @@
 </main>
 <dialog id="about"><button id="close-about" aria-label="关闭说明" class="dialog-close">×</button><div class="eyebrow">ABOUT THE DATA</div><h2>如何阅读这张地图</h2><p>这是一个国家级冲突新闻观察站。纳入的是部分已核实案例，并非全球冲突的完整清单。未着色不等于没有冲突。</p><div class="about-types"><p><i class="swatch persistent"></i><b>持续武装冲突</b>：持续战事或武装团体冲突。</p><p><i class="swatch localized"></i><b>局部交火 / 武装暴力</b>：局部袭击、跨境交火或严重武装暴力，包括海地的帮派暴力。</p><p><i class="swatch spillover"></i><b>区域外溢</b>：跨境安全、航运或难民接收影响，并不表示当地发生地面战争。</p></div><p>这些颜色是本项目的描述性分类，不是死亡人数或严重程度评分。每个地区附有核实依据与来源日期。当前地图快照截至 <b>2026-10-13</b>，不同依据的发布日期可能更早。</p><p>新闻在选择国家、切换时间范围和点击刷新时获取；同一订阅源和国家的成功结果缓存 15 分钟；点击“刷新”会重新获取。新闻更新不会自动更改地图状态。没有近期结果时，页面明确显示缓存或快照；没有结果就显示空状态。</p><p>底图：Natural Earth，经 datasets/geo-countries 分发，公共领域。国界和区域显示仅为地理概览。地图数据已随项目打包，新闻更新需要联网。</p><a class="source-link" href="https://www.naturalearthdata.com/about/terms-of-use/" target="_blank" rel="noopener noreferrer">查看底图使用条款 ↗</a></dialog>
 <script src="/app.js" defer></script>
+<script src="/timeline.js" defer></script>
 </body></html>

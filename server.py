@@ -22,6 +22,7 @@ from pathlib import Path
 import source_collectors
 import geoeconomics
 import market_data
+import event_data
 
 ROOT = Path(__file__).resolve().parent
 CONFIG = json.loads((ROOT / 'data/conflicts.json').read_text(encoding='utf-8'))
@@ -224,6 +225,24 @@ class Handler(SimpleHTTPRequestHandler):
                 self.json_response({'error':'Invalid market query'}, 400); return
             except (OSError, sqlite3.Error, RuntimeError):
                 self.json_response({'error':'Market database unavailable; run sync_market.py init'}, 503); return
+        if parsed.path in ('/api/timeline', '/api/events'):
+            params = urllib.parse.parse_qs(parsed.query)
+            try:
+                country = params.get('country', [None])[0]
+                commodity = params.get('commodity', [None])[0]
+                kind = params.get('type', [None])[0]
+                basis = params.get('basis', ['impact'])[0]
+                limit = int(params.get('limit', ['100'])[0])
+                result = event_data.timeline(
+                    country=country, commodity=commodity, event_type=kind,
+                    basis=basis, start=params.get('start', [None])[0],
+                    end=params.get('end', [None])[0], limit=limit)
+                self.json_response(result)
+            except (ValueError, TypeError):
+                self.json_response({'error': 'Invalid timeline query'}, 400)
+            except (OSError, sqlite3.Error, RuntimeError):
+                self.json_response({'error': 'Event database unavailable; run sync_market.py init'}, 503)
+            return
         if parsed.path == '/api/news':
             args = urllib.parse.parse_qs(parsed.query)
             country_id = args.get('country', [''])[0]

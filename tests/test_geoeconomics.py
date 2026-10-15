@@ -20,9 +20,10 @@ class SchemaTests(unittest.TestCase):
 
     def test_initialization_is_repeatable_and_seeds_only_existing_countries(self):
         before = geo.status(self.db)
-        self.assertEqual(before["schema_version"], 1)
+        self.assertEqual(before["schema_version"], 2)
         self.assertEqual(before["tables"]["countries"], 19)
         self.assertEqual(before["tables"]["events"], 0)
+        self.assertEqual(before["tables"]["event_reviews"], 0)
         self.assertEqual(before["tables"]["price_observations"], 0)
         geo.initialize(self.db)
         self.assertEqual(before, geo.status(self.db))
@@ -92,6 +93,15 @@ class SchemaTests(unittest.TestCase):
             conn.execute(statement, values)
             with self.assertRaises(sqlite3.IntegrityError):
                 conn.execute(statement, values)
+
+    def test_v1_upgrade_is_additive(self):
+        with geo.connect(self.db) as conn:
+            conn.execute("PRAGMA user_version=1")
+            conn.execute("INSERT INTO data_sources(id,name,homepage_url,access_type) VALUES ('old','Existing source','https://example.org','public')")
+        geo.initialize(self.db)
+        self.assertEqual(geo.status(self.db)["schema_version"],2)
+        with geo.connect(self.db) as conn:
+            self.assertEqual(conn.execute("SELECT name FROM data_sources WHERE id='old'").fetchone()[0],"Existing source")
 
     def test_future_schema_version_fails_closed(self):
         with geo.connect(self.db) as conn:

@@ -171,3 +171,40 @@ python server.py
 - 来源转载须遵守各机构使用条款，数据库的 `redistribution_allowed` 默认为未知（NULL），不得当作授权许可。
 
 **测试**：`python -m unittest discover -s tests -v`，`node tests/test_frontend.cjs`。CI 在 Python 3.10 和 3.12 上运行。此次先交付数据库与接口，不把尚无数据的市场模块强行塞入现有右侧新闻面板。
+
+
+## V3.0 P2 · 审核事件和多轨道时间轴（开发分支）
+
+P2 在现有地图和 P1 商品面板旁增加“重大事件时间轴”，按冲突/停火、制裁/贸易政策、供应、物流四类轨道展示。支持发生/公告/生效/来源发表日期基准切换。未审核的记录、普通新闻标题及测试数据不会自动进入时间轴。
+
+执行：
+
+    python sync_market.py init
+    python sync_events.py validate --file reviewed-events.json
+    python sync_events.py import --file reviewed-events.json
+    python sync_events.py list --country UKR
+    python server.py
+
+数据库自动从 v1 非破坏性迁移到 v2；新增 event_evidence（多证据）和 event_reviews（编辑审核）表。完全相同的事件 ID/内容允许幂等重导；同 ID 内容变更会拒绝，不做静默覆盖。新建数据库的事件记录仍为零。
+
+接口：GET /api/timeline?country=UKR&basis=impact 和 GET /api/events?country=UKR&commodity=wheat&type=embargo&start=2024-01-01&end=2026-10-15。查询不触发远程抓取。
+
+完整导入字段契约、编辑审核与证据要求：参见 [docs/event-import.md](docs/event-import.md)。此阶段尚未自动导入 UCDP/ACLED 历史事件，未执行价格因果分析，不自动计算冲突烈度。
+
+## P2 第一批官方来源历史事件（2022—2024）
+
+已纳入 11 条由 AI 辅助对照官方原始文件整理的研究事件，数据在 `data/official-events-2022-2024.json`。涉及 2022 年俄罗斯入侵、欧盟对俄能源措施、联合国黑海粮食倡议、红海航运中断报告及美国针对俄罗斯金属的限制。
+
+**审核等级：官方来源已核对（AI 辅助），尚待人工编辑复核。** `reviewer` 字段显式记录了非人工核对身份；时间轴的 `research_ai_assisted=true`、`editor_reviewed=false`；切勿把该批数据宣传为独立人工审计完成。
+
+项目不会从新闻自动生成历史事件。为避免无意中改变用户本地数据库，下载分支后需手动运行以下命令将历史记录导入本地数据库：
+
+    python sync_market.py init
+    python sync_events.py validate --file data/official-events-2022-2024.json
+    python sync_events.py import --file data/official-events-2022-2024.json
+    python sync_events.py list --country UKR
+    python sync_events.py list --country RUS
+    python sync_events.py list --country YEM
+    python server.py
+
+重复导入相同数据不增加记录；相同 ID 但内容不同的记录拒绝写入。以上事件从 2022—2024 年官方文件归档中构建，不代表截至今天的最新冲突态势，也不能证明事件造成具体价格变动。**数据源清单和时间基准解释**见 `docs/official-events-2022-2024.md`。

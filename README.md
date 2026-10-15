@@ -87,3 +87,27 @@ https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.g
 地图边界为地理概览，不构成对争议边界的裁定。
 
 本地服务接口、新闻回退逻辑与前端核心交互均有自动化验证。
+
+
+## V2.1 · 多信息源采集
+
+原有 RSS（Bing News、BBC News、UN News）继续工作，新增 **GDELT DOC 2.0** 新闻索引采集，以及可选 **ReliefWeb** 人道主义报告索引。结果仍通过现有 `/api/news?country=UKR&days=7` 接口返回，无需改变地图前端。
+
+直接运行采集器（Python 3.10+，不需要第三方包）：
+
+```bash
+python source_collectors.py --country UKR --days 7
+python source_collectors.py --country SDN --days 30 --output sudan.json
+python server.py
+```
+
+ReliefWeb 需要事先取得官方批准的 API `appname`，再设置环境变量 `RELIEFWEB_APPNAME`；未配置时自动跳过 ReliefWeb。设置 `CONFLICTSCOPE_STRUCTURED_SOURCES=0` 可禁用结构化来源，仅保留原有 RSS。采集器使用超时、大小限制、URL 检查、日期统一化及来源失败隔离；无网络时仍可回退到已有缓存或快照。
+
+**数据解释**：GDELT 是新闻索引，ReliefWeb 是报告索引；被收录不等于独立核实事件，也不应直接据此调整冲突级别。自动抓取受各来源服务条款、可用性和限流约束。
+
+执行测试：
+
+```bash
+python -m unittest discover -s tests -v
+node tests/test_frontend.cjs
+```

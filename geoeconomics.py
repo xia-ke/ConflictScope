@@ -15,7 +15,7 @@ SCHEMA_VERSION = 3
 TABLES = (
     "countries", "data_sources", "commodities", "commodity_hs_codes",
     "price_series", "price_observations", "trade_flows", "events", "event_links",
-    "event_evidence", "event_reviews", "sync_runs", "source_checks", "price_revisions",
+    "event_evidence", "event_reviews", "sync_runs", "source_checks", "price_revisions", "sync_leases",
 )
 
 SCHEMA = """
@@ -174,6 +174,11 @@ CREATE TABLE IF NOT EXISTS source_checks (
   latest_observation TEXT,
   fingerprint TEXT,
   failure_code TEXT
+);
+CREATE TABLE IF NOT EXISTS sync_leases (
+  name TEXT PRIMARY KEY,
+  token TEXT NOT NULL,
+  expires_at TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS price_revisions (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

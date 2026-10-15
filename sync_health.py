@@ -182,7 +182,7 @@ def report(path=geo.DEFAULT_DB, *, today=None):
         alerts=[{"job_id":j["job_id"],"code":"source_change_requires_review"}
                 for j in jobs if j["review_pending"]]
         alerts.extend({"job_id":j["job_id"],"code":j["health"]}
-                for j in jobs if j["health"] in ("never_succeeded","failed_last_attempt","stale_update")])
+                for j in jobs if j["health"] in ("never_succeeded","failed_last_attempt","stale_update"))
         alerts.extend({"series_id":p["id"],"code":p["health"]}
                       for p in prices if p["health"]!="current_observations")
         if unfinished:

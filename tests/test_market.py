@@ -1,6 +1,7 @@
 """P1 adapters, persistence and HTTP regression (fixtures only; zero network calls)."""
 import io
 import json
+import os
 import sys
 import tempfile
 import threading
@@ -16,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import geoeconomics as geo
 import market_data as store
 import market_sources as src
+import sync_market
 import server
 
 
@@ -177,6 +179,14 @@ class StoreTests(unittest.TestCase):
         response = store.trade_by_country("UKR",path=self.db)
         self.assertTrue(response["not_total_trade_ranking"])
         self.assertEqual(response["rows"],[])
+
+    def test_cli_requires_key_without_creating_database(self):
+        path=Path(self.tmp.name)/"no-authorization.sqlite3"
+        with patch.dict(os.environ,{"COMTRADE_API_KEY":""}):
+            with self.assertRaisesRegex(ValueError,"COMTRADE_API_KEY"):
+                sync_market.cli(["--db",str(path),"comtrade","--country","UKR",
+                                 "--year","2024","--commodity","wheat","--flow","export"])
+        self.assertFalse(path.exists())
 
     def test_comtrade_transactional_upsert_world_partner(self):
         rows=src.comtrade("UKR",2024,commodity="wheat",key="fixture",loader=lambda url,headers: sample_comtrade())

@@ -1,0 +1,35 @@
+name: ConflictScope regression
+on:
+  push:
+    branches:
+      - feature/v3-p0-geoeconomic-foundation
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile Python modules
+        run: python -m py_compile server.py source_collectors.py geoeconomics.py
+      - name: Test Python
+        env:
+          CONFLICTSCOPE_STRUCTURED_SOURCES: '0'
+        run: python -m unittest discover -s tests -v
+      - name: Verify V3 schema CLI
+        run: |
+          python geoeconomics.py init --db /tmp/conflictscope-ci.sqlite3
+          python geoeconomics.py status --db /tmp/conflictscope-ci.sqlite3
+      - name: Frontend logic regression
+        run: node tests/test_frontend.cjs

@@ -29,6 +29,15 @@ def _catalog(conn):
             ON CONFLICT DO NOTHING""",
             (ident, sources.HS_REVISION, hs,
              "Strict six-digit demonstration mapping; not total commodity trade."))
+    for hs_revision,(classification,mapping) in sources.HS_REVISION_CODES.items():
+        if hs_revision==sources.HS_REVISION:
+            continue
+        for ident,code in mapping.items():
+            conn.execute("""INSERT INTO commodity_hs_codes
+                (commodity_id,hs_revision,hs_code,mapping_note) VALUES (?,?,?,?)
+                ON CONFLICT DO NOTHING""",
+                (ident,hs_revision,code,
+                 "Independently sourced HS revision; never silently combined with older revision."))
 
 
 def initialize(path=geo.DEFAULT_DB):
@@ -47,9 +56,11 @@ def save_trade(rows, path=geo.DEFAULT_DB):
             raise ValueError("Database must be initialized")
         _catalog(conn)
         for row in rows:
-            if row["reporter"] not in sources.REPORTERS or row["hs_code"] not in (
-                    item[2] for item in sources.COMMODITIES.values()):
-                raise ValueError("Unapproved country or commodity")
+            if row["reporter"] not in sources.REPORTERS or not any(
+                    row["hs_revision"]==revision and row["hs_code"]==code
+                    for revision,(api,mapping) in sources.HS_REVISION_CODES.items()
+                    for code in mapping.values()):
+                raise ValueError("Unapproved country or HS revision/code pair")
             conn.execute("""INSERT INTO trade_flows(
                   reporter_id,partner_id,flow,period_start,period_type,
                   hs_revision,hs_code,value_usd,quantity,quantity_unit,source_id,retrieved_at)

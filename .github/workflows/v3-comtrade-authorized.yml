@@ -26,17 +26,18 @@ jobs:
         run: |
           python - <<'PY'
           import market_sources as m
-          url=("https://comtradeapi.un.org/public/v1/getDA/C/A/H5"
-               "?reporterCode=804&period=2024")
-          try:
-              body=m.fetch_json(url)
-              rows=body.get("data")
-              if not isinstance(rows,list):
-                  raise ValueError("Unknown availability response")
-              print("UN Comtrade public availability metadata: "+str(len(rows))+" candidate records")
-              print("Metadata presence alone does NOT prove a usable HS6 trade total.")
-          except Exception as exc:
-              print("Public availability diagnostic inconclusive: "+type(exc).__name__)
+          for classification in ("H5","H6","HS"):
+              url=("https://comtradeapi.un.org/public/v1/getDA/C/A/"
+                   +classification+"?reporterCode=804&period=2024")
+              try:
+                  body=m.fetch_json(url)
+                  rows=body.get("data")
+                  if not isinstance(rows,list):
+                      raise ValueError("Unknown availability response")
+                  print("Public availability "+classification+"/UKR/2024: "+str(len(rows))+" records")
+                  print("Availability metadata is not a verified HS6 trade amount.")
+              except Exception as exc:
+                  print("Public availability "+classification+" inconclusive: "+type(exc).__name__)
           PY
       - name: Fail closed without an authorized Data API key
         shell: bash

@@ -20,6 +20,9 @@ def article(title='Ukraine conflict update', hours=2, url='https://example.org/n
 
 class NewsTests(unittest.TestCase):
     def setUp(self):
+        # Existing RSS/cache tests must not make live GDELT/ReliefWeb requests.
+        self.structured_sources_patch = patch.dict('os.environ', {'CONFLICTSCOPE_STRUCTURED_SOURCES': '0'})
+        self.structured_sources_patch.start()
         self.temp = tempfile.TemporaryDirectory()
         self.old_cache_dir = server.CACHE_DIR
         server.CACHE_DIR = Path(self.temp.name)
@@ -28,6 +31,7 @@ class NewsTests(unittest.TestCase):
     def tearDown(self):
         server.CACHE_DIR = self.old_cache_dir
         self.temp.cleanup()
+        self.structured_sources_patch.stop()
 
     def test_rss_direct_link_gzip_and_reject_unsafe(self):
         raw = b'''<rss xmlns:n="urn:bing"><channel><item><title>Ukraine &amp; war</title><link>https://www.bing.com/news/apiclick?url=https%3A%2F%2Fexample.org%2Fstory</link><pubDate>Tue, 13 Oct 2026 03:00:00 GMT</pubDate><n:Source>Publisher</n:Source></item><item><title>Bad</title><link>javascript:alert(1)</link><pubDate>Tue, 13 Oct 2026 03:00:00 GMT</pubDate></item><item><title>Undated</title><link>https://example.org/undated</link></item></channel></rss>'''
@@ -60,6 +64,17 @@ class NewsTests(unittest.TestCase):
             server.get_news('UKR', 30, force=True)
             self.assertEqual(fetch.call_count, 6)
             self.assertTrue(all(x.args[2] is True for x in fetch.call_args_list[-3:]))
+
+    def test_structured_source_survives_rss_outage(self):
+        with patch.dict('os.environ', {'CONFLICTSCOPE_STRUCTURED_SOURCES': '1'}):
+            with patch.object(server, 'fetch_feed', side_effect=OSError('rss offline')):
+                with patch.object(server.source_collectors, 'collect',
+                                  return_value=([article()], ['GDELT'], ['ReliefWeb'])):
+                    result = server.get_news('UKR')
+        self.assertEqual(result['status'], 'live')
+        self.assertIn('GDELT', result['providers'])
+        self.assertIn('ReliefWeb', result['failed_providers'])
+        self.assertEqual(len(result['articles']), 1)
 
     def test_failed_feeds_use_stale_cache_with_original_fetch_time(self):
         with patch.object(server, 'fetch_feed', return_value=[article()]):

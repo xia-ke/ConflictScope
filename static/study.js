@@ -36,10 +36,21 @@
     const commodities=new Set((event?.links||[]).map(x=>x.commodity_id).filter(Boolean));
     return catalog.series.filter(s=>commodities.has(s.commodity_id)&&Number(s.observation_count)>0);
   }
+  function syncControl(){
+    const sel=$('study-control'),previous=sel.value;
+    const main=catalog.series.find(s=>s.id===$('study-series').value);
+    const options=catalog.series.filter(s=>main&&s.id!==main.id&&
+      s.frequency==='daily'&&s.price_type==='spot'&&
+      s.currency===main.currency&&Number(s.observation_count)>0);
+    sel.replaceChildren(new Option('不计算对照模型',''));
+    for(const s of options)sel.append(new Option(s.benchmark+' · '+s.id,s.id));
+    sel.value=options.some(x=>x.id===previous)?previous:'';
+  }
   function syncSeries(){
     const event=catalog.events.find(x=>x.id===$('study-event').value);
     const matches=matchedSeries(event);
     setOptions('study-series',matches.map(s=>[s.id, s.benchmark+' · '+s.frequency]),'没有关联行情');
+    syncControl();
   }
   function clear(){
     $('study-results').replaceChildren();
@@ -144,6 +155,25 @@
       mk('p','study-warning','所选日期类型缺失；分析已标注使用的回退日期字段：'+data.anchor_field));
     if(data.event.research_ai_assisted)$('study-results').append(
       mk('p','study-warning','该事件是 AI 辅助核查的官方来源记录，尚未完成人工复核。'));
+    if(data.market_model){
+      const model=data.market_model;
+      const title=mk('h4','study-comparison-heading','对照价格序列 · 模型相对累计异常对数收益（CAR）');
+      $('study-results').append(title);
+      if(model.status==='ok'){
+        const diag=mk('p','study-meta','对照 '+model.control.benchmark+
+          ' · 事件前配对样本 '+model.estimation_count+
+          ' · OLS 估计窗口 -90 到 -21 个交易日');
+        const estimates=mk('div','study-stat-grid');
+        estimates.append(
+          statistic('模型 CAR t+0',pct(model.cumulative_abnormal_log_return_pct['0'])),
+          statistic('模型 CAR t+5',pct(model.cumulative_abnormal_log_return_pct['5'])),
+          statistic('模型 CAR t+20',pct(model.cumulative_abnormal_log_return_pct['20']))
+        );
+        $('study-results').append(diag,estimates,
+          mk('p','study-warning','此为模型相对超额变化，无显著性与因果检验；同日其它因素仍可能驱动价格。'));
+      }else $('study-results').append(mk('p','study-warning',
+        model.reason||'对照序列的事件前数据不足，未计算 CAR。'));
+    }
     makeChart(data.points);
   }
   function renderComparison(payload){
@@ -153,12 +183,15 @@
     root.append(mk('h4','study-comparison-heading','同地区、同商品的其他事件对比'));
     const table=mk('table','study-comparison-table');
     const head=mk('tr');
-    for(const name of ['事件（选定日期）','t+5','t+20'])head.append(mk('th','',name));
+    const modelEnabled=Boolean($('study-control').value);
+    for(const name of ['事件（选定日期）','t+5','t+20',...(modelEnabled?['模型 CAR +5']:[])])
+      head.append(mk('th','',name));
     table.append(head);
     for(const row of payload.events){
       const tr=mk('tr');
       tr.append(mk('td','',row.event.title+' · '+row.event_date));
       for(const k of ['5','20'])tr.append(mk('td','',pct(row.returns?.[k]?.change_pct)));
+      if(modelEnabled)tr.append(mk('td','',pct(row.market_model?.cumulative_abnormal_log_return_pct?.['5'])));
       table.append(tr);
     }
     root.append(table);
@@ -177,6 +210,8 @@
     $('study-status').textContent='正在对齐事件时间与本地报价…';
     const query=new URLSearchParams({event_id:eventId,series,basis,window:windowSize});
     const compareQuery=new URLSearchParams({country,series,basis,window:windowSize,limit:'30'});
+    const control=$('study-control').value;
+    if(control){query.set('control',control);compareQuery.set('control',control);}
     try{
       const [out,related]=await Promise.all([
         getJSON('/api/analysis/event-study?'+query),
@@ -197,6 +232,7 @@
     if(!country){
       setOptions('study-event',[],'请选择事件');
       setOptions('study-series',[],'请选择价格序列');
+      syncControl();
       $('study-status').textContent='未纳入观察地区';
       return;
     }
@@ -221,7 +257,8 @@
   function boot(){
     if(started)return;started=true;
     $('study-event').addEventListener('change',()=>{syncSeries();runStudy();});
-    for(const id of ['study-series','study-basis','study-window'])
+    $('study-series').addEventListener('change',()=>{syncControl();runStudy();});
+    for(const id of ['study-control','study-basis','study-window'])
       $(id).addEventListener('change',runStudy);
     document.addEventListener('conflictscope:country',e=>loadCountry(e.detail?.id||null));
   }

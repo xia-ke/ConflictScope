@@ -45,3 +45,12 @@ P2 采用独立于新闻聚合的人工审核流程。GDELT/RSS 报道不能直�
 - impact 模式下，制裁、禁运及贸易政策优先生效日期；其他类型优先实际发生日期。缺失时采用有记录的其他日期，并保留所有原始日期以供审计。
 
 本阶段输出的是可追溯的多轨道事件记录。冲突烈度统计、事件窗口异常收益及因果评估属于后续阶段，不能用当前时间轴结果冒充统计结论。
+
+
+## 第一批 AI 辅助官方来源核对记录
+
+[2022—2024 年的 11 条原始事件数据](../data/official-events-2022-2024.json)与[逐条官方资料核查说明](official-events-2022-2024.md)已随分支提交。用户必须显式执行 `sync_events.py import --file data/official-events-2022-2024.json`，本地数据库才会写入这些历史记录。
+
+**审核标识注意**：当前导入契约里的 `review.decision="approved"` 是本地记录的技术准入标志，不能单独解释为完成人工审计。首批数据明确把 `review.reviewer` 设置为 `AI-assisted official-source research (NOT a human editor)` 并附有 `review.note`；查询 API 返回 `research_ai_assisted=true` 和 `editor_reviewed=false`，前端也标注“AI辅助，尚未人工复核”。此处由原始官方文献支持的历史事实与具体经济价格因果认定仍是不同层次。
+
+在开展 P3 统计分析或公开传播为“已独立审计”之前，应由具名人工编辑逐条核对日期、法律文本适用范围、事件摘要与地域/商品映射，并制定新的签核与修订流程。不能简单将 AI 记录中的 `reviewer` 字符串手动改成人名来伪造审核。

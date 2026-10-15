@@ -111,3 +111,21 @@ ReliefWeb 需要事先取得官方批准的 API `appname`，再设置环境变�
 python -m unittest discover -s tests -v
 node tests/test_frontend.cjs
 ```
+
+
+## V3.0 P0 · 地缘经济数据底座（开发分支）
+
+这一阶段只落地本地数据库规范、可追溯模型和离线回归，不代表已接入商品行情或具备因果分析能力。现有地图、冲突分类及 `/api/news` 保持兼容。
+
+```bash
+python geoeconomics.py init
+python geoeconomics.py status
+python -m unittest discover -s tests -v
+node tests/test_frontend.cjs
+```
+
+默认数据库是 `data/geoeconomics.sqlite3`（被 Git 忽略）。可以使用 `--db /path/to/file.sqlite3` 自定义路径；初始化可重复执行，默认从当前 `conflicts.json` 补齐观察国家，但不会编造任何贸易、价格或冲突事件记录。
+
+P0 表结构包括：`countries`、`data_sources`（来源与再分发状态）、`commodities`、`commodity_hs_codes`（HS 修订版本）、`trade_flows`（贸易方向、期间、镜像估计标志）、`price_series`、`price_observations`（行情基准/币种/单位/观察日）、`events`（发生/宣布/生效/发布时间分别记录）、`event_links`（事件关联国家/商品/基础设施与证据）。所有历史表在 P0 初始化后保持为空；后续阶段只能通过经过验证的适配器填充，且不得从新闻标题自动推断价格因果关系。
+
+新增源级字段：来源网址、访问权限、许可说明、再分发标志；源内容尚未自动导入。未来开发阶段：P1 接入贸易与价格源；P2 事件核实/时间轴；P3 事件窗口分析与置信度；P4 定期同步和数据质量监控。建议采用独立 PR 验收，再合并进 `main`。

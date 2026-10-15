@@ -140,8 +140,20 @@ def study(event_id, series_id, *, basis="impact", window=20, path=geo.DEFAULT_DB
                           reason="Nearest price observations exceed seven-day alignment tolerance",
                           event_date=when,date_field=field,fallback=fallback,window=window)
         baseline=quotes[i-1][1]
+        # A long missing-data gap is NOT a normal trading suspension.
+        # Do not describe observations months later as t+1 trading day.
+        lo=max(0,i-window)
+        hi=min(len(quotes)-1,i+window)
+        for j in range(i-1,lo-1,-1):
+            if (date.fromisoformat(quotes[j+1][0])-date.fromisoformat(quotes[j][0])).days > MAX_EVENT_ALIGN_DAYS:
+                lo=j+1
+                break
+        for j in range(i+1,hi+1):
+            if (date.fromisoformat(quotes[j][0])-date.fromisoformat(quotes[j-1][0])).days > MAX_EVENT_ALIGN_DAYS:
+                hi=j-1
+                break
         points=[]
-        for j in range(max(0,i-window),min(len(quotes),i+window+1)):
+        for j in range(lo,hi+1):
             day,value=quotes[j]
             points.append({"offset":j-i,"date":day,"price":value,
                            "cumulative_pct":round((value/baseline-1)*100,6)})
@@ -149,13 +161,13 @@ def study(event_id, series_id, *, basis="impact", window=20, path=geo.DEFAULT_DB
         for k in (0,1,5,10,20,30):
             if k>window:
                 continue
-            if i+k>=len(quotes):
+            if i+k>hi:
                 periods[str(k)]=None
             else:
                 d,p=quotes[i+k]
                 periods[str(k)]={"trading_offset":k,"date":d,"price":p,
                                   "change_pct":round((p/baseline-1)*100,6)}
-        pre_price=quotes[i-window-1][1] if i-window-1>=0 else None
+        pre_price=quotes[i-window-1][1] if i-window-1>=0 and i-window-1>=lo-1 else None
         warnings=[
             "Descriptive before/after price changes, NOT abnormal returns or proven causal effects.",
             "Event dates are usually day-precision; announcement time vs market close is unknown.",
@@ -164,7 +176,7 @@ def study(event_id, series_id, *, basis="impact", window=20, path=geo.DEFAULT_DB
         if fallback:
             warnings.append("Requested date basis missing: used an explicitly identified fallback field.")
         if any(periods[k] is None for k in periods):
-            warnings.append("At least one post-event horizon is unavailable; missing values remain null.")
+            warnings.append("At least one post-event horizon is unavailable or interrupted by a >7-day price gap; missing values remain null.")
         return {
             "status":"ok","series":meta,"event":event_out,
             "event_date":event_str,"anchor_field":field,"date_fallback":fallback,

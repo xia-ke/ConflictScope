@@ -161,7 +161,7 @@ def run_once(plan=DEFAULT_PLAN, *, path=geo.DEFAULT_DB, today=None,
                 changed=bool(job["provider"]=="event-watch" and previous.get(job["id"])
                              and previous[job["id"]]!=item["fingerprint"])
                 health.finish(rid,job["id"],"success",attempts,item["count"],
-                              item["fingerprint"],item["latest"],path=path)
+                              item["fingerprint"],item["latest"],review_pending=changed,path=path)
                 results.append({"job_id":job["id"],"status":"success",
                                 "attempts":attempts,"records":item["count"],
                                 "latest_observation":item["latest"],
@@ -186,12 +186,17 @@ def main(argv=None):
     p.add_argument("--retries",type=int,default=2)
     sub.add_parser("validate",help="Validate plan without network or DB writes")
     sub.add_parser("status",help="Read local source freshness and run history")
+    ack=sub.add_parser("ack-change",help="Acknowledge detected source batch change (does not approve events)")
+    ack.add_argument("--job",required=True)
     args=parser.parse_args(argv)
     try:
         if args.cmd=="validate":
             result={"valid":True,"jobs":[j["id"] for j in read_plan(args.plan)]}
         elif args.cmd=="status":
             result=health.report(args.db)
+        elif args.cmd=="ack-change":
+            result={"job_id":args.job,"acknowledged":health.acknowledge_watch(args.job,args.db),
+                    "note":"Acknowledges source-file change alert ONLY; no event is automatically reviewed or imported."}
         else:
             result=run_once(args.plan,path=args.db,retries=args.retries)
         print(json.dumps(result,ensure_ascii=False,indent=2))

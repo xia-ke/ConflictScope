@@ -8,7 +8,7 @@ import market_sources as sources
 
 SOURCES = {
     "comtrade": ("UN Comtrade", "https://comtradeapi.un.org/", "registration",
-        "API preview has record/rate limits; inspect UN Comtrade terms before redistribution."),
+        "UNSD-copyright trade data. API key and final-data access do not imply a license to redistribute; apply UNSD re-dissemination policy and explicit deployment rights."),
     "pink-sheet": ("World Bank Pink Sheet", sources.PINK_SHEET_PAGE, "public",
         "World Bank dataset terms govern redistribution; preserve benchmark metadata."),
     "eia": ("U.S. Energy Information Administration", sources.EIA_PAGE, "registration",

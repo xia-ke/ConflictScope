@@ -45,6 +45,7 @@ jobs:
           node --check static/timeline.js
           node tests/test_frontend.cjs
           node tests/test_timeline_frontend.cjs
+          node tests/test_price_panel_frontend.cjs
       - name: P2 official-source historical dataset (no network)
         run: |
           python sync_events.py validate --file data/official-events-2022-2024.json

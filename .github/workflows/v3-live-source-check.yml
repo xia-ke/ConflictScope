@@ -1,0 +1,44 @@
+name: V3 source connectivity acceptance
+on:
+  push:
+    branches: [release/v3-integration-acceptance]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test source availability and parsers (no DB or API keys)
+        id: live_probe
+        continue-on-error: true
+        shell: bash
+        run: |
+          python scripts/live_source_probe.py --strict > source_probe.json
+          code=$?
+          cat source_probe.json
+          if [ "$code" -ne 0 ]; then
+            echo "Some live sources failed; this is NOT a verified live-data release." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Public source probes succeeded; EIA key-gated source may be skipped." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$code"
+      - name: Preserve source-status evidence (no quote values or credentials)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v3-public-source-probe
+          path: source_probe.json
+          if-no-files-found: warn
+      - name: Explicit acceptance outcome
+        if: always()
+        run: |
+          echo "Source-probe outcome: ${{ steps.live_probe.outcome }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Source connectivity diagnostic is separate from offline integration."

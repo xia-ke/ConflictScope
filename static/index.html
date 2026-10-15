@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="以世界地图查看部分冲突、局部交火与区域外溢影响，按国家阅读近期新闻。">
-  <title>冲突观察 · Conflict Atlas</title><link rel="stylesheet" href="/style.css">
+  <title>ConflictScope · 全球冲突与贸易</title><link rel="stylesheet" href="/style.css">
 </head>
 <body>
 <header class="topbar">
@@ -30,6 +30,13 @@
     <aside class="news-panel" aria-label="国家新闻与详情">
       <div class="news-top"><span class="eyebrow">REGION BRIEFING</span><span class="news-icon">↗</span></div>
       <div id="country-detail"></div>
+      <section class="market-section" aria-label="贸易与商品价格（试点）">
+        <div class="market-heading"><h3>贸易与商品</h3><small>P1 · 跟踪商品</small></div>
+        <div id="market-status" class="market-note" role="status" aria-live="polite">尚未读取市场数据库</div>
+        <div id="market-details"></div>
+        <div id="market-prices"></div>
+        <p class="market-disclaimer">仅显示已同步的 HS6 商品贸易与独立市场价格，不构成完整出口排名或冲突致价证据。</p>
+      </section>
       <div class="news-heading"><h3>相关新闻</h3><button id="refresh-news" class="text-button">↻ 刷新</button></div>
       <div class="news-controls"><select id="days" aria-label="新闻时间范围"><option value="7">最近 7 天</option><option value="30" selected>最近 30 天</option><option value="90">最近 90 天</option></select><select id="source-kind" aria-label="新闻来源类型"><option value="all">全部来源</option><option value="official">联合国新闻</option><option value="media">媒体报道</option></select></div>
       <div id="news-status" class="news-status" role="status" aria-live="polite"></div><div id="provider-status" class="provider-status" aria-label="新闻源状态"></div><div id="articles" class="articles"></div>

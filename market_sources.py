@@ -57,7 +57,8 @@ def fetch_bytes(url, *, max_size=MAX_RESPONSE, headers=None):
         raise ValueError("Unapproved data origin")
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, **(headers or {})})
     with urllib.request.urlopen(request, timeout=20) as response:
-        if response.geturl().split("/")[2] not in (
+        redirect = urllib.parse.urlsplit(response.geturl())
+        if redirect.scheme != "https" or redirect.hostname not in (
             "comtradeapi.un.org", "api.eia.gov", "thedocs.worldbank.org"
         ):
             raise ValueError("Redirect to unapproved data origin")
@@ -129,7 +130,7 @@ def comtrade(reporter, year, *, commodity, flow="export", key=None, loader=fetch
 
 
 def eia_spot(series, *, start, end, key, loader=fetch_json):
-    """EIA Brent and WTI spot USD/barrel; key is never placed in URL."""
+    """EIA Brent and WTI spot USD/barrel; EIA requires api_key query parameter."""
     if series not in EIA_SERIES or not key:
         raise ValueError("Approved EIA series and EIA_API_KEY required")
     for value in (start, end):
@@ -138,11 +139,10 @@ def eia_spot(series, *, start, end, key, loader=fetch_json):
         raise ValueError("Invalid date range")
     query = urllib.parse.urlencode({
         "frequency": "daily", "data[0]": "value", "facets[series][]": series,
-        "start": start, "end": end, "sort[0][column]": "period",
+        "start": start, "end": end, "api_key": key, "sort[0][column]": "period",
         "sort[0][direction]": "asc", "offset": 0, "length": 5000
     })
-    response = loader("https://api.eia.gov/v2/petroleum/pri/spt/data/?" + query,
-                      headers={"X-Api-Key": key})
+    response = loader("https://api.eia.gov/v2/petroleum/pri/spt/data/?" + query)
     payload = response.get("response", {})
     rows = payload.get("data")
     if not isinstance(rows, list):

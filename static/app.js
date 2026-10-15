@@ -106,6 +106,7 @@ function selectCountry(id,scroll=true){
     ++marketToken;$('market-details').replaceChildren();$('market-prices').replaceChildren();$('market-status').textContent='未纳入当前冲突地区观察清单。';
     $('refresh-news').disabled=true;$('days').disabled=true;$('source-kind').disabled=true;
   }
+  document.dispatchEvent(new CustomEvent('conflictscope:country',{detail:{id:c?c.id:null}}));
   if(scroll && window.matchMedia('(max-width:920px)').matches)$('country-detail').scrollIntoView({behavior:'smooth',block:'start'});
 }
 // P1 market panel: source-scoped data, never inferred conflict causality.

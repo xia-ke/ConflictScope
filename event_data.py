@@ -310,7 +310,7 @@ def timeline(*, country=None, commodity=None, event_type=None, basis="impact",
     if end:
         predicates.append(f"substr(({expr}),1,10)<=?")
         params.append(end)
-    sql = f"""SELECT e.*, s.name AS source_name, r.reviewed_at,
+    sql = f"""SELECT e.*, s.name AS source_name, r.reviewed_at, r.reviewer, r.review_note,
          ({expr}) AS timeline_date
          FROM events e JOIN event_reviews r ON r.event_id=e.id
          JOIN data_sources s ON s.id=e.source_id
@@ -340,10 +340,11 @@ def timeline(*, country=None, commodity=None, event_type=None, basis="impact",
                 item["evidence"] = evidence[item["id"]]
                 item["links"] = links[item["id"]]
                 item["track"] = TRACK[item["event_type"]]
-                item["editor_reviewed"] = True
+                item["research_ai_assisted"] = item["reviewer"].startswith("AI-assisted")
+                item["editor_reviewed"] = not item["research_ai_assisted"]
     return {
         "country": country, "commodity": commodity, "event_type": event_type,
         "basis": basis, "start": start, "end": end, "limit": limit,
         "events": events, "count": len(events),
-        "note": "Editorially approved evidence records; not independent verification or proof of price causality."
+        "note": "Source-documented event records, including AI-assisted research pending human review; not independent verification or proof of price causality."
     }

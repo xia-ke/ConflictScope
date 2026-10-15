@@ -208,3 +208,18 @@ P2 在现有地图和 P1 商品面板旁增加“重大事件时间轴”，按�
     python server.py
 
 重复导入相同数据不增加记录；相同 ID 但内容不同的记录拒绝写入。以上事件从 2022—2024 年官方文件归档中构建，不代表截至今天的最新冲突态势，也不能证明事件造成具体价格变动。**数据源清单和时间基准解释**见 `docs/official-events-2022-2024.md`。
+
+
+## V3：历史商品价格回填（FRED / 世界银行 / EIA）
+
+新增 [historical_prices.py](historical_prices.py)，为 P2 的 2022—2024 年事件建立按原始日期、基准、单位和来源分离的历史市场价格序列。使用 Python 3.10+ 标准库，无需额外 pip 包；默认覆盖 2021-01-01 至 2025-12-31，日期可自定义；数据库写入为事务性、幂等，未获取数据时不造假值。
+
+    python historical_prices.py catalog
+    python historical_prices.py fred --series DCOILBRENTEU --start 2021-01-01 --end 2025-12-31
+    python historical_prices.py fred --series DCOILWTICO --start 2021-01-01 --end 2025-12-31
+    python historical_prices.py fred --series PWHEAMTUSDM --start 2021-01-01 --end 2025-12-31
+    python historical_prices.py fred --series PCOPPUSDM --start 2021-01-01 --end 2025-12-31
+    python historical_prices.py worldbank --download --list-columns
+    python historical_prices.py coverage --country UKR
+
+具体的世界银行 XLSX 导入、EIA API Key、运行示例与数据版权要求见 [docs/historical-prices.md](docs/historical-prices.md)。日度原油现货和月度 IMF/世界银行商品基准严格区分；默认不将价格变化归因于冲突。

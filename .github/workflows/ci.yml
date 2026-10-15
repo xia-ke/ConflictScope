@@ -5,11 +5,13 @@ on:
       - feature/v3-p0-geoeconomic-foundation
       - feature/v3-p1-trade-commodity-prices
       - feature/v3-p2-verified-event-timeline
+      - feature/v3-historical-price-backfill
   pull_request:
     branches:
       - main
       - feature/v3-p0-geoeconomic-foundation
       - feature/v3-p1-trade-commodity-prices
+      - feature/v3-p2-verified-event-timeline
 
 permissions:
   contents: read
@@ -26,7 +28,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Compile Python modules
-        run: python -m py_compile server.py source_collectors.py geoeconomics.py market_sources.py market_data.py sync_market.py event_data.py sync_events.py
+        run: python -m py_compile server.py source_collectors.py geoeconomics.py market_sources.py market_data.py sync_market.py event_data.py sync_events.py historical_prices.py
       - name: Test Python
         env:
           CONFLICTSCOPE_STRUCTURED_SOURCES: '0'
@@ -43,13 +45,19 @@ jobs:
           node --check static/timeline.js
           node tests/test_frontend.cjs
           node tests/test_timeline_frontend.cjs
+          node tests/test_price_panel_frontend.cjs
       - name: P2 official-source historical dataset (no network)
         run: |
           python sync_events.py validate --file data/official-events-2022-2024.json
           python sync_events.py import --file data/official-events-2022-2024.json --db /tmp/conflictscope-ci.sqlite3
           python sync_events.py import --file data/official-events-2022-2024.json --db /tmp/conflictscope-ci.sqlite3
           python -c "import sys,json; import event_data; d=event_data.timeline(country='UKR',path='/tmp/conflictscope-ci.sqlite3'); assert d['count'] >= 4; assert all(e['research_ai_assisted'] and not e['editor_reviewed'] for e in d['events']); print('Historical events found:', d['count'])"
+      - name: Historical price CLI and provenance smoke
+        run: |
+          python historical_prices.py catalog
+          python historical_prices.py --db /tmp/conflictscope-ci.sqlite3 coverage --country UKR
       - name: P2 manual ledger CLI smoke
         run: |
           python sync_events.py --help
           python sync_events.py list --db /tmp/conflictscope-ci.sqlite3 --country UKR
+

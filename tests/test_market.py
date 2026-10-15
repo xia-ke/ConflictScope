@@ -78,6 +78,25 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(qs["customsCode"],["C00"])
         self.assertEqual(qs["motCode"],["0"])
 
+    def test_explicit_hs2022_h6_wheat_keeps_revision(self):
+        response=sample_comtrade()
+        response["data"][0]["classificationCode"]="H6"
+        got=[]
+        def fetch(url,headers):
+            got.append(url)
+            return response
+        rows=src.comtrade("UKR",2024,commodity="wheat",hs_revision="HS2022",
+                          key="fixture-key",loader=fetch)
+        self.assertEqual(rows[0]["hs_revision"],"HS2022")
+        self.assertEqual(rows[0]["hs_code"],"100199")
+        self.assertIn("/data/v1/get/C/A/H6?",got[0])
+        with self.assertRaises(ValueError):
+            src.comtrade("UKR",2024,commodity="copper",hs_revision="HS2022",
+                         key="fixture",loader=fetch)
+        with self.assertRaises(ValueError):
+            src.comtrade("UKR",2024,commodity="wheat",hs_revision="HS2012",
+                         key="fixture",loader=fetch)
+
     def test_comtrade_rejects_no_key_without_contacting_preview(self):
         with self.assertRaisesRegex(ValueError,"COMTRADE_API_KEY"):
             src.comtrade("UKR",2024,commodity="wheat",
@@ -196,6 +215,17 @@ class StoreTests(unittest.TestCase):
         response=store.trade_by_country("UKR",year=2024,flow="export",path=self.db)
         self.assertEqual(len(response["rows"]),1)
         self.assertEqual(response["rows"][0]["value_usd"],123456.75)
+
+    def test_hs_revision_is_preserved_end_to_end_and_not_double_counted(self):
+        response=sample_comtrade()
+        response["data"][0]["classificationCode"]="H6"
+        data=src.comtrade("UKR",2024,commodity="wheat",hs_revision="HS2022",
+                          key="fixture",loader=lambda url,headers:response)
+        store.save_trade(data,self.db)
+        records=store.trade_by_country("UKR",year=2024,flow="export",path=self.db)
+        self.assertEqual(len(records["rows"]),1)
+        self.assertEqual(records["rows"][0]["hs_revision"],"HS2022")
+        self.assertEqual(records["rows"][0]["commodity_id"],"wheat")
 
     def test_reject_metadata_mutation_without_partial_price_import(self):
         store.save_prices("wb:copper","copper","pink-sheet","Copper","monthly",

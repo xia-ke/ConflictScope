@@ -10,6 +10,7 @@ from datetime import date, timedelta
 
 import geoeconomics as geo
 import event_data
+import event_market_model
 
 WINDOW_CHOICES = (5, 10, 20, 30)
 MAX_EVENT_ALIGN_DAYS = 7
@@ -82,7 +83,7 @@ def _empty(metadata, event, *, status, reason, event_date, date_field, fallback,
             "points":[],"returns":{}, "warnings":["Insufficient data; no prices fabricated."]}
 
 
-def study(event_id, series_id, *, basis="impact", window=20, path=geo.DEFAULT_DB):
+def study(event_id, series_id, *, basis="impact", window=20, control_series=None, path=geo.DEFAULT_DB):
     """Compare P[-1] to P[t+0/+1/+5/+20] on actual quoted dates.
 
     Baseline: last reported quote strictly BEFORE the event calendar date.
@@ -177,7 +178,7 @@ def study(event_id, series_id, *, basis="impact", window=20, path=geo.DEFAULT_DB
             warnings.append("Requested date basis missing: used an explicitly identified fallback field.")
         if any(periods[k] is None for k in periods):
             warnings.append("At least one post-event horizon is unavailable or interrupted by a >7-day price gap; missing values remain null.")
-        return {
+        output = {
             "status":"ok","series":meta,"event":event_out,
             "event_date":event_str,"anchor_field":field,"date_fallback":fallback,
             "event_trading_date":quotes[i][0], "baseline_date":quotes[i-1][0],
@@ -186,9 +187,13 @@ def study(event_id, series_id, *, basis="impact", window=20, path=geo.DEFAULT_DB
             "pre_window_change_pct":round((quotes[i-1][1]/pre_price-1)*100,6) if pre_price else None,
             "points":points,"returns":periods,"warnings":warnings
         }
+        if control_series:
+            output["market_model"] = event_market_model.estimate(
+                output,control_series,path=path)
+        return output
 
 
-def compare(*, country, series_id, basis="impact", window=20, limit=30, path=geo.DEFAULT_DB):
+def compare(*, country, series_id, basis="impact", window=20, limit=30, control_series=None, path=geo.DEFAULT_DB):
     """Compare dated *eligible* events for a commodity, excluding unlinked events.
 
     Rates are descriptive, not independent samples or independent treatment effects.
@@ -207,11 +212,12 @@ def compare(*, country, series_id, basis="impact", window=20, limit=30, path=geo
             ORDER BY e.id LIMIT ?""",(country,meta["commodity_id"],limit)).fetchall()
     results=[]
     for row in rows:
-        doc=study(row["id"],series_id,basis=basis,window=window,path=path)
+        doc=study(row["id"],series_id,basis=basis,window=window,control_series=control_series,path=path)
         results.append({"event":doc["event"],"event_date":doc["event_date"],
                         "anchor_field":doc["anchor_field"],"status":doc["status"],
                         "baseline_date":doc.get("baseline_date"),
-                        "returns":doc["returns"],"reason":doc.get("reason")})
+                        "returns":doc["returns"],"reason":doc.get("reason"),
+                        "market_model":doc.get("market_model")})
     results.sort(key=lambda x:(x["event_date"],x["event"]["id"]))
     return {"country":country,"series":meta,"basis":basis,"window":window,
             "events":results,"count":len(results),

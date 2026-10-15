@@ -102,6 +102,16 @@ class StudyTests(unittest.TestCase):
         self.assertEqual(r["points"],[])
         self.assertEqual(r["returns"],{})
 
+    def test_long_gap_after_event_does_not_masquerade_as_next_trading_day(self):
+        with geo.connect(self.path) as c:
+            c.execute("""DELETE FROM price_observations
+                WHERE observed_at>='2022-03-01' AND observed_at<='2022-03-19'""")
+        result=self.call()
+        self.assertEqual(result["status"],"ok")
+        self.assertIsNone(result["returns"]["1"])
+        self.assertIsNone(result["returns"]["5"])
+        self.assertEqual(max(p["offset"] for p in result["points"]),0)
+
     def test_no_baseline_fails_without_synthetic_close(self):
         with geo.connect(self.path) as c:
             c.execute("DELETE FROM price_observations WHERE observed_at<'2022-02-26'")

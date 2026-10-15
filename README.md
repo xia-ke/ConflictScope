@@ -171,3 +171,22 @@ python server.py
 - 来源转载须遵守各机构使用条款，数据库的 `redistribution_allowed` 默认为未知（NULL），不得当作授权许可。
 
 **测试**：`python -m unittest discover -s tests -v`，`node tests/test_frontend.cjs`。CI 在 Python 3.10 和 3.12 上运行。此次先交付数据库与接口，不把尚无数据的市场模块强行塞入现有右侧新闻面板。
+
+
+## V3.0 P2 · 审核事件和多轨道时间轴（开发分支）
+
+P2 在现有地图和 P1 商品面板旁增加“重大事件时间轴”，按冲突/停火、制裁/贸易政策、供应、物流四类轨道展示。支持发生/公告/生效/来源发表日期基准切换。未审核的记录、普通新闻标题及测试数据不会自动进入时间轴。
+
+执行：
+
+    python sync_market.py init
+    python sync_events.py validate --file reviewed-events.json
+    python sync_events.py import --file reviewed-events.json
+    python sync_events.py list --country UKR
+    python server.py
+
+数据库自动从 v1 非破坏性迁移到 v2；新增 event_evidence（多证据）和 event_reviews（编辑审核）表。完全相同的事件 ID/内容允许幂等重导；同 ID 内容变更会拒绝，不做静默覆盖。新建数据库的事件记录仍为零。
+
+接口：GET /api/timeline?country=UKR&basis=impact 和 GET /api/events?country=UKR&commodity=wheat&type=embargo&start=2024-01-01&end=2026-10-15。查询不触发远程抓取。
+
+完整导入字段契约、编辑审核与证据要求：参见 [docs/event-import.md](docs/event-import.md)。此阶段尚未自动导入 UCDP/ACLED 历史事件，未执行价格因果分析，不自动计算冲突烈度。

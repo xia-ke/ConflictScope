@@ -113,7 +113,7 @@ class V3Integration(unittest.TestCase):
             "primaryValue":123456.0,"netWgt":67000
         }]}
         flows=market_sources.comtrade("UKR",2024,commodity="wheat",flow="export",
-                                      loader=lambda url:comtrade)
+                                      key="offline-fixture-only",loader=lambda url,headers:comtrade)
         market_data.save_trade(flows,cls.db)
 
         # Execute a real P4 orchestration cycle but intercept all source I/O.

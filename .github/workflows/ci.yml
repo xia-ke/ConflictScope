@@ -9,6 +9,7 @@ on:
       - feature/v3-p3-event-price-study
       - feature/v3-p4-sync-quality-monitoring
       - release/v3-integration-acceptance
+      - fix/v3-comtrade-authorized-data
   pull_request:
     branches:
       - main
@@ -18,6 +19,7 @@ on:
       - feature/v3-historical-price-backfill
       - feature/v3-p3-event-price-study
       - feature/v3-p4-sync-quality-monitoring
+      - release/v3-integration-acceptance
 
 permissions:
   contents: read

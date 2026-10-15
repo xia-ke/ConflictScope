@@ -250,3 +250,16 @@ P4 增加 `sync_tasks.py`（允许列表任务同步、短暂故障重试、同�
 正式自动执行需在部署主机的 cron / Windows 任务计划程序设置触发时间；程序不会悄悄在后台自行运行，也不会自动发送电子邮件。针对来源修改的提醒只能由操作人员复核后通过 `python sync_tasks.py ack-change --job official-events-watch` 确认已处理，该动作不是事件编辑审批。
 
 **完整配置说明、调度示例、重试与审计规则：** [docs/sync-operations.md](docs/sync-operations.md)。本项目对受限制第三方价格数据不默认授予公开再分发权。
+
+
+## V3.0 Comtrade 正式数据接入修复（授权门禁）
+
+自本修复分支起，`sync_market.py comtrade` **不再使用无密钥 Public Preview 数据导入贸易额**，而是要求通过 UN Comtrade 注册账户取得正式 Data API 密钥。将密钥存为本地环境变量 `COMTRADE_API_KEY`，或配置到 GitHub Actions Secret；切勿把它写入代码、URL 或公开日志。正式数据的读取不会默默切换为预览。
+
+    python sync_market.py init
+    python sync_market.py comtrade --country UKR --year 2024 --commodity wheat --flow export --hs-revision HS2022
+    python scripts/live_source_probe.py --require-comtrade
+
+数据范围仍严格限定在单一 **指定 HS 版本的六位编码、报告国、年度、流向、世界伙伴国** 合计，不能作为全量国家进出口排行。默认 HS2017/H5；2024 乌克兰小麦可显式指定已核对的 HS2022/H6 编码 100199（原始数据集 H6 可用性已查明），不会自动在版本之间转换。API 获取授权与公开数据再分发授权不同；免费可视化、内部使用和商业提供下载分别适用 UNSD 条款。
+
+**获取密钥、许可分类、剩余验收门禁：** [docs/comtrade-access-and-rights.md](docs/comtrade-access-and-rights.md)。若未配置 `COMTRADE_API_KEY`，CI 中的正式数据源门禁会失败，V3 的合并仍保持阻塞。

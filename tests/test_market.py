@@ -1,6 +1,7 @@
 """P1 adapters, persistence and HTTP regression (fixtures only; zero network calls)."""
 import io
 import json
+import os
 import sys
 import tempfile
 import threading
@@ -16,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import geoeconomics as geo
 import market_data as store
 import market_sources as src
+import sync_market
 import server
 
 
@@ -56,36 +58,98 @@ def xlsx_fixture():
 
 class AdapterTests(unittest.TestCase):
     def test_comtrade_qualified_single_record(self):
-        seen = []
-        def loader(url):
-            seen.append(urllib.parse.parse_qs(urllib.parse.urlsplit(url).query))
+        seen=[]
+        def loader(url, *, headers):
+            seen.append((urllib.parse.urlsplit(url),headers))
             return sample_comtrade()
-        rows = src.comtrade("UKR", 2024, commodity="wheat", loader=loader)
-        self.assertEqual(len(rows), 1)
-        self.assertEqual(rows[0]["hs_revision"], "HS2017")
-        self.assertEqual(rows[0]["quantity_unit"], "kg")
-        self.assertEqual(seen[0]["partnerCode"], ["0"])
-        self.assertEqual(seen[0]["cmdCode"], ["100199"])
-        self.assertEqual(seen[0]["flowCode"], ["X"])
+        rows=src.comtrade("UKR",2024,commodity="wheat",key="fixture-key",loader=loader)
+        self.assertEqual(len(rows),1)
+        self.assertEqual(rows[0]["hs_revision"],"HS2017")
+        self.assertEqual(rows[0]["quantity_unit"],"kg")
+        endpoint,headers=seen[0]
+        self.assertEqual(endpoint.path,"/data/v1/get/C/A/H5")
+        self.assertNotIn("fixture-key",endpoint.query)
+        self.assertEqual(headers["Ocp-Apim-Subscription-Key"],"fixture-key")
+        qs=urllib.parse.parse_qs(endpoint.query)
+        self.assertEqual(qs["partnerCode"],["0"])
+        self.assertEqual(qs["partner2Code"],["0"])
+        self.assertEqual(qs["cmdCode"],["100199"])
+        self.assertEqual(qs["flowCode"],["X"])
+        self.assertEqual(qs["customsCode"],["C00"])
+        self.assertEqual(qs["motCode"],["0"])
+
+    def test_explicit_hs2022_h6_wheat_keeps_revision(self):
+        response=sample_comtrade()
+        response["data"][0]["classificationCode"]="H6"
+        got=[]
+        def fetch(url,headers):
+            got.append(url)
+            return response
+        rows=src.comtrade("UKR",2024,commodity="wheat",hs_revision="HS2022",
+                          key="fixture-key",loader=fetch)
+        self.assertEqual(rows[0]["hs_revision"],"HS2022")
+        self.assertEqual(rows[0]["hs_code"],"100199")
+        self.assertIn("/data/v1/get/C/A/H6?",got[0])
+        with self.assertRaises(ValueError):
+            src.comtrade("UKR",2024,commodity="copper",hs_revision="HS2022",
+                         key="fixture",loader=fetch)
+        with self.assertRaises(ValueError):
+            src.comtrade("UKR",2024,commodity="wheat",hs_revision="HS2012",
+                         key="fixture",loader=fetch)
+
+    def test_comtrade_rejects_no_key_without_contacting_preview(self):
+        with self.assertRaisesRegex(ValueError,"COMTRADE_API_KEY"):
+            src.comtrade("UKR",2024,commodity="wheat",
+                         loader=lambda url: self.fail("Must never use preview"))
+        with self.assertRaises(ValueError):
+            src.comtrade("UKR",2024,commodity="wheat",key="bad\nkey",
+                         loader=lambda url: self.fail("Malformed key"))
 
     def test_comtrade_rejects_partial_and_wrong_dimension(self):
-        response = sample_comtrade()
-        response["count"] = 2
-        with self.assertRaises(ValueError):
-            src.comtrade("UKR", 2024, commodity="wheat", loader=lambda url: response)
-        response["count"] = 1
-        response["data"][0]["partnerCode"] = 156
-        with self.assertRaises(ValueError):
-            src.comtrade("UKR", 2024, commodity="wheat", loader=lambda url: response)
+        from copy import deepcopy
+        for mutation in ("count","partnerCode","classificationCode","aggrLevel",
+                         "flowCode","partner2Code","motCode","customsCode","cmdCode"):
+            with self.subTest(mutation=mutation):
+                response=deepcopy(sample_comtrade())
+                if mutation=="count":
+                    response["count"]=2
+                else:
+                    response["data"][0][mutation]={
+                       "partnerCode":156,"classificationCode":"H6","aggrLevel":4,
+                       "flowCode":"M","partner2Code":156,"motCode":1,
+                       "customsCode":"C01","cmdCode":"100198"
+                    }[mutation]
+                with self.assertRaises(ValueError):
+                    src.comtrade("UKR",2024,commodity="wheat",key="fixture",
+                                 loader=lambda url,headers:response)
 
-    def test_comtrade_empty_preview_is_not_a_zero_trade_claim(self):
-        with self.assertRaisesRegex(ValueError,"no verified rows"):
-            src.comtrade("UKR",2024,commodity="wheat",
-                         loader=lambda url:{"count":0,"data":[]})
+    def test_comtrade_empty_final_result_is_not_zero_trade(self):
+        with self.assertRaisesRegex(ValueError,"coverage is unknown"):
+            src.comtrade("UKR",2024,commodity="wheat",key="fixture",
+                         loader=lambda url,headers:{"count":0,"data":[]})
+
+    def test_comtrade_valid_observation_can_be_zero_value(self):
+        response=sample_comtrade()
+        response["data"][0]["primaryValue"]=0
+        values=src.comtrade("UKR",2024,commodity="wheat",key="fixture",
+                            loader=lambda url,headers:response)
+        self.assertEqual(values[0]["value_usd"],0)
+
+    def test_comtrade_preview_is_diagnostic_only(self):
+        seen=[]
+        def fetch(url):
+            seen.append(url)
+            return sample_comtrade()
+        summary=src.comtrade_preview_diagnostic("UKR",2024,commodity="wheat",loader=fetch)
+        self.assertEqual(summary["status"],"preview_only_not_importable")
+        self.assertEqual(summary["rows_returned"],1)
+        self.assertNotIn("data",summary)
+        self.assertNotIn("primaryValue",str(summary))
+        self.assertIn("/public/v1/preview/",seen[0])
 
     def test_comtrade_rejects_unapproved_reporter(self):
         with self.assertRaises(ValueError):
-            src.comtrade("USA", 2024, commodity="wheat", loader=lambda url: {})
+            src.comtrade("USA",2024,commodity="wheat",key="fixture",loader=lambda url: {})
 
     def test_eia_requires_key_and_has_explicit_dates(self):
         with self.assertRaises(ValueError):
@@ -135,14 +199,33 @@ class StoreTests(unittest.TestCase):
         self.assertTrue(response["not_total_trade_ranking"])
         self.assertEqual(response["rows"],[])
 
+    def test_cli_requires_key_without_creating_database(self):
+        path=Path(self.tmp.name)/"no-authorization.sqlite3"
+        with patch.dict(os.environ,{"COMTRADE_API_KEY":""}):
+            with self.assertRaisesRegex(ValueError,"COMTRADE_API_KEY"):
+                sync_market.cli(["--db",str(path),"comtrade","--country","UKR",
+                                 "--year","2024","--commodity","wheat","--flow","export"])
+        self.assertFalse(path.exists())
+
     def test_comtrade_transactional_upsert_world_partner(self):
-        rows=src.comtrade("UKR",2024,commodity="wheat",loader=lambda url: sample_comtrade())
+        rows=src.comtrade("UKR",2024,commodity="wheat",key="fixture",loader=lambda url,headers: sample_comtrade())
         self.assertEqual(store.save_trade(rows,self.db),1)
         self.assertEqual(store.save_trade(rows,self.db),1)
         self.assertEqual(geo.status(self.db)["tables"]["trade_flows"],1)
         response=store.trade_by_country("UKR",year=2024,flow="export",path=self.db)
         self.assertEqual(len(response["rows"]),1)
         self.assertEqual(response["rows"][0]["value_usd"],123456.75)
+
+    def test_hs_revision_is_preserved_end_to_end_and_not_double_counted(self):
+        response=sample_comtrade()
+        response["data"][0]["classificationCode"]="H6"
+        data=src.comtrade("UKR",2024,commodity="wheat",hs_revision="HS2022",
+                          key="fixture",loader=lambda url,headers:response)
+        store.save_trade(data,self.db)
+        records=store.trade_by_country("UKR",year=2024,flow="export",path=self.db)
+        self.assertEqual(len(records["rows"]),1)
+        self.assertEqual(records["rows"][0]["hs_revision"],"HS2022")
+        self.assertEqual(records["rows"][0]["commodity_id"],"wheat")
 
     def test_reject_metadata_mutation_without_partial_price_import(self):
         store.save_prices("wb:copper","copper","pink-sheet","Copper","monthly",

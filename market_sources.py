@@ -33,6 +33,13 @@ COMMODITIES = {
 REPORTERS = {"UKR": 804, "RUS": 643, "COD": 180, "YEM": 887, "SDN": 729}
 HS_REVISION = "HS2017"
 COMTRADE_CLASSIFICATION = "H5"
+# Explicitly reviewed cross-revision HS6 mapping. Do not silently reclassify
+# an annual series or substitute another HS revision after an empty response.
+# HS2022 100199 is confirmed in the WCO 2022 Chapter 10 nomenclature.
+HS_REVISION_CODES = {
+    "HS2017": ("H5", {key: item[2] for key,item in COMMODITIES.items()}),
+    "HS2022": ("H6", {"wheat":"100199"}),
+}
 
 
 def retrieved_at():
@@ -75,63 +82,112 @@ def fetch_json(url, **kwargs):
     return doc
 
 
-def comtrade(reporter, year, *, commodity, flow="export", key=None, loader=fetch_json):
-    """One exact HS2017/6-digit commodity vs world; reject truncation/partial response."""
+def comtrade(reporter, year, *, commodity, flow="export", hs_revision="HS2017",
+             key=None, loader=fetch_json):
+    """Fetch ONE exact explicitly selected HS6 world aggregate from final Data API.
+
+    Preview is intentionally never persisted: it may be partial or empty and cannot
+    establish a zero trade total. Free UN Comtrade B2C API keys support data/v1/get;
+    the supplied secret must stay in an HTTPS header, not in URLs or logs.
+    """
     if reporter not in REPORTERS or commodity not in COMMODITIES:
         raise ValueError("Unsupported pilot reporter or commodity")
-    if flow not in ("export", "import") or not 1990 <= year <= datetime.now().year:
+    if type(year) is not int or flow not in ("export","import") or not 1990 <= year <= datetime.now().year:
         raise ValueError("Invalid year or trade flow")
-    cmd = COMMODITIES[commodity][2]
-    authenticated = bool(key)
-    base = ("https://comtradeapi.un.org/data/v1/get/C/A/" if authenticated
-            else "https://comtradeapi.un.org/public/v1/preview/C/A/") + COMTRADE_CLASSIFICATION
-    params = {"reporterCode": REPORTERS[reporter], "period": year,
-              "partnerCode": 0, "cmdCode": cmd, "flowCode": "X" if flow == "export" else "M",
-              "maxRecords": 500}
-    url = base + "?" + urllib.parse.urlencode(params)
-    auth = {"Ocp-Apim-Subscription-Key": key} if key else {}
-    # Mock loaders may accept either (url, headers=...) or (url); be explicit.
-    body = loader(url, headers=auth) if key else loader(url)
-    if body.get("error") not in (None, "", "null"):
-        raise ValueError("Comtrade returned an API error")
-    rows = body.get("data")
-    if not isinstance(rows, list):
-        raise ValueError("Invalid Comtrade payload")
-    if body.get("count", len(rows)) > len(rows) or len(rows) >= 500:
-        raise ValueError("Comtrade result is incomplete; refusing partial import")
-    # Public preview can return empty for unavailable reporting/classification
-    # coverage; absence of preview records is NOT proof of zero national trade.
+    if not isinstance(key,str) or not key.strip() or "\r" in key or "\n" in key:
+        raise ValueError("COMTRADE_API_KEY required for complete final trade data (preview cannot be imported)")
+    if hs_revision not in HS_REVISION_CODES or commodity not in HS_REVISION_CODES[hs_revision][1]:
+        raise ValueError("Requested HS revision/commodity mapping has not been verified")
+    classification, mapping = HS_REVISION_CODES[hs_revision]
+    cmd = mapping[commodity]
+    params = {
+        "reporterCode":REPORTERS[reporter],
+        "period":year,
+        "partnerCode":0,
+        "partner2Code":0,
+        "cmdCode":cmd,
+        "flowCode":"X" if flow=="export" else "M",
+        "customsCode":"C00",
+        "motCode":0,
+        "maxrecords":500,
+    }
+    url=("https://comtradeapi.un.org/data/v1/get/C/A/"+classification+
+         "?"+urllib.parse.urlencode(params))
+    body=loader(url,headers={"Ocp-Apim-Subscription-Key":key})
+    if not isinstance(body,dict) or body.get("error") not in (None,"","null"):
+        raise ValueError("Comtrade final data API reported error")
+    rows=body.get("data")
+    if not isinstance(rows,list):
+        raise ValueError("Invalid Comtrade final data payload")
+    try:
+        count=int(body.get("count",len(rows)))
+    except (ValueError,TypeError) as exc:
+        raise ValueError("Comtrade final data count invalid") from exc
+    if count!=len(rows) or len(rows)>=500 or count<0:
+        raise ValueError("Comtrade final data may be truncated or inconsistent; refusing import")
     if not rows:
-        raise ValueError("Comtrade preview returned no verified rows; coverage or subscription may be required")
-    result = []
-    for row in rows:
-        if not isinstance(row, dict):
-            raise ValueError("Invalid Comtrade record")
-        if (str(row.get("reporterCode")) != str(REPORTERS[reporter]) or
-            str(row.get("period")) != str(year) or
-            str(row.get("partnerCode")) != "0" or
-            str(row.get("cmdCode")).zfill(6) != cmd or
-            row.get("flowCode") != ("X" if flow == "export" else "M") or
-            row.get("classificationCode", COMTRADE_CLASSIFICATION) != COMTRADE_CLASSIFICATION):
-            raise ValueError("Comtrade record differs from requested dimensions")
-        # Aggregate records may be returned separately by mode/customs/partner2.
-        if str(row.get("partner2Code", 0)) != "0" or str(row.get("motCode", 0)) != "0":
-            raise ValueError("Unexpected Comtrade secondary dimension")
-        if row.get("customsCode", "C00") != "C00":
-            raise ValueError("Unexpected customs breakdown")
-        value = finite_price(row.get("primaryValue"))
-        qty = row.get("netWgt")
-        qty = float(qty) if qty not in (None, "") else None
-        if qty is not None and (not math.isfinite(qty) or qty < 0):
-            raise ValueError("Invalid reported weight")
-        result.append({"reporter": reporter, "partner": None, "flow": flow,
-            "period_start": f"{year}-01-01", "period_type": "annual",
-            "hs_revision": HS_REVISION, "hs_code": cmd, "value_usd": value,
-            "quantity": qty, "quantity_unit": "kg" if qty is not None else None})
-    if len(result) > 1:
-        raise ValueError("Duplicate Comtrade aggregates; cannot select a reliable total")
-    return result
+        raise ValueError("No verified final trade observation: coverage is unknown, not zero")
+    if len(rows)!=1:
+        raise ValueError("Cannot identify one unique world/HS6/flow aggregate")
+    row=rows[0]
+    if not isinstance(row,dict):
+        raise ValueError("Invalid Comtrade final record")
+    if (str(row.get("reporterCode"))!=str(REPORTERS[reporter]) or
+        str(row.get("period"))!=str(year) or
+        str(row.get("partnerCode"))!="0" or
+        str(row.get("cmdCode")).zfill(6)!=cmd or
+        str(row.get("flowCode"))!=("X" if flow=="export" else "M") or
+        row.get("classificationCode",classification)!=classification or
+        str(row.get("partner2Code",0))!="0" or
+        str(row.get("motCode",0))!="0" or
+        str(row.get("customsCode","C00"))!="C00"):
+        raise ValueError("Comtrade final record differs from exact request dimensions")
+    if row.get("aggrLevel") is not None and str(row["aggrLevel"])!="6":
+        raise ValueError("Comtrade result is not a 6-digit HS observation")
+    # Trade values can legitimately be zero; unlike nonnegative commodity spot quotes.
+    try:
+        value=float(row["primaryValue"])
+    except (ValueError,TypeError,KeyError) as exc:
+        raise ValueError("Missing numeric trade value") from exc
+    if not math.isfinite(value) or value<0:
+        raise ValueError("Invalid trade value")
+    qty=row.get("netWgt")
+    if qty in (None,""):
+        qty=None
+    else:
+        try: qty=float(qty)
+        except (TypeError,ValueError) as exc: raise ValueError("Invalid trade net weight") from exc
+        if not math.isfinite(qty) or qty<0:
+            raise ValueError("Invalid trade net weight")
+    return [{
+        "reporter":reporter,"partner":None,"flow":flow,
+        "period_start":f"{year}-01-01","period_type":"annual",
+        "hs_revision":hs_revision,"hs_code":cmd,"value_usd":value,
+        "quantity":qty,"quantity_unit":"kg" if qty is not None else None
+    }]
 
+
+def comtrade_preview_diagnostic(reporter, year, *, commodity, flow="export", loader=fetch_json):
+    """Connectivity-only preview. Never return values or rows for persistence."""
+    if reporter not in REPORTERS or commodity not in COMMODITIES:
+        raise ValueError("Unsupported reporter or commodity")
+    if type(year) is not int or flow not in ("export","import") or not 1990<=year<=datetime.now().year:
+        raise ValueError("Invalid preview parameters")
+    query=urllib.parse.urlencode({
+        "reporterCode":REPORTERS[reporter],"period":year,"partnerCode":0,
+        "cmdCode":COMMODITIES[commodity][2],
+        "flowCode":"X" if flow=="export" else "M",
+        "maxrecords":10
+    })
+    result=loader("https://comtradeapi.un.org/public/v1/preview/C/A/"+
+                  COMTRADE_CLASSIFICATION+"?"+query)
+    if not isinstance(result,dict) or not isinstance(result.get("data"),list):
+        raise ValueError("Preview API is not available")
+    return {
+        "status":"preview_only_not_importable",
+        "rows_returned":len(result["data"]),
+        "warning":"Preview can be incomplete; count=0 does NOT imply zero trade."
+    }
 
 def eia_spot(series, *, start, end, key, loader=fetch_json):
     """EIA Brent and WTI spot USD/barrel; EIA requires api_key query parameter."""

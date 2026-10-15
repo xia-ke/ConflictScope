@@ -21,6 +21,9 @@ def cli(argv=None):
     trade.add_argument("--year", type=int, required=True)
     trade.add_argument("--commodity", choices=tuple(sources.COMMODITIES), required=True)
     trade.add_argument("--flow", choices=("import","export"), required=True)
+    trade.add_argument("--hs-revision", choices=tuple(sources.HS_REVISION_CODES),
+                       default="HS2017",
+                       help="Explicit source classification; HS2022 currently verified for wheat only")
     energy = cmds.add_parser("eia", help="Fetch Brent or WTI EIA daily spot series")
     energy.add_argument("--series", choices=tuple(sources.EIA_SERIES), required=True)
     energy.add_argument("--start", required=True, help="YYYY-MM-DD")
@@ -41,13 +44,14 @@ def cli(argv=None):
                 "eia_series": sources.EIA_SERIES, "pink_sheet_page": sources.PINK_SHEET_PAGE}
     if args.command == "comtrade":
         rows = sources.comtrade(args.country, args.year, commodity=args.commodity,
-                   flow=args.flow, key=os.getenv("COMTRADE_API_KEY"))
+                   flow=args.flow, hs_revision=args.hs_revision,
+                   key=os.getenv("COMTRADE_API_KEY"))
         if not rows:
             raise ValueError("Authenticated Comtrade final data produced no verified trade observation")
         data.initialize(args.db)
         return {"status":"imported","imported":data.save_trade(rows,args.db),"reporter":args.country,
                 "hs_code":sources.COMMODITIES[args.commodity][2],
-                "coverage":"one_HS6_world_partner",
+                "coverage":"one_HS6_world_partner","hs_revision":args.hs_revision,
                 "access_mode":"authenticated_final",
                 "redistribution_permission":"deployment_specific_review_required"}
     if args.command == "eia":

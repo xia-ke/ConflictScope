@@ -105,6 +105,12 @@
         <div id="study-comparison"></div>
         <p class="study-footnote">图中 0 日为事件当日或其后的首次有效行情日，基线取事件前最后一次报价。默认收益率是观察到的累计价格变动；开启日度对照序列后，会显示依赖模型假设的累计异常对数收益（CAR），不提供显著性推断，也不代表冲突的因果影响。月度数据不用于日级事件分析。</p>
       </section>
+      <section class="sync-section" aria-label="市场数据同步健康状态">
+        <div class="sync-heading"><h3>数据源健康</h3><button id="refresh-sync" class="text-button" type="button">↻ 检查</button></div>
+        <p id="sync-status" class="sync-note" role="status" aria-live="polite">尚未读取同步状态</p>
+        <div id="sync-sources"></div>
+        <p class="sync-footnote">数据观察日期不等于同步日期。失败时保留上次成功记录，事件来源变更只提示人工核查，不自动认定冲突或修改市场数据。</p>
+      </section>
       <div class="news-heading"><h3>相关新闻</h3><button id="refresh-news" class="text-button">↻ 刷新</button></div>
       <div class="news-controls"><select id="days" aria-label="新闻时间范围"><option value="7">最近 7 天</option><option value="30" selected>最近 30 天</option><option value="90">最近 90 天</option></select><select id="source-kind" aria-label="新闻来源类型"><option value="all">全部来源</option><option value="official">联合国新闻</option><option value="media">媒体报道</option></select></div>
       <div id="news-status" class="news-status" role="status" aria-live="polite"></div><div id="provider-status" class="provider-status" aria-label="新闻源状态"></div><div id="articles" class="articles"></div>
@@ -117,4 +123,5 @@
 <script src="/app.js" defer></script>
 <script src="/timeline.js" defer></script>
 <script src="/study.js" defer></script>
+<script src="/sync_status.js" defer></script>
 </body></html>

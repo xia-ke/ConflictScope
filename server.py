@@ -24,6 +24,7 @@ import geoeconomics
 import market_data
 import event_data
 import event_price_study
+import sync_health
 
 ROOT = Path(__file__).resolve().parent
 CONFIG = json.loads((ROOT / 'data/conflicts.json').read_text(encoding='utf-8'))
@@ -189,6 +190,12 @@ class Handler(SimpleHTTPRequestHandler):
             self.json_response(CONFIG); return
         if parsed.path == '/api/health':
             self.json_response({'ok': True, 'time': now_iso()}); return
+        if parsed.path == '/api/sync/status':
+            try:
+                self.json_response(sync_health.report())
+            except (OSError,sqlite3.Error,RuntimeError,ValueError):
+                self.json_response({'error':'Synchronization database unavailable; run python sync_tasks.py once'},503)
+            return
         if parsed.path.startswith(('/api/commodities', '/api/trade/', '/api/prices', '/api/market/')):
             # Read-only market endpoints never trigger external API calls or create data.
             args = urllib.parse.parse_qs(parsed.query)

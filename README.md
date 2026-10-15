@@ -234,3 +234,19 @@ P3 增加国家地区详情中的“事件与价格观察”分析区：选事�
 使用方法：先运行 `python sync_events.py import --file data/official-events-2022-2024.json` 导入事件，再按 `docs/historical-prices.md` 回填对应时段的现货价格，然后运行 `python server.py`。API 为 `/api/analysis/event-study` 和 `/api/analysis/compare`，均为只读且不触发网络抓取。
 
 **完整方法、样本覆盖要求和模型限制：** [docs/event-price-study.md](docs/event-price-study.md)。
+
+
+## V3.0 P4 · 定时同步和数据质量监控（开发分支）
+
+P4 增加 `sync_tasks.py`（允许列表任务同步、短暂故障重试、同数据库单运行者租约）及 `sync_health.py`（上次成功时间、行情观测日期、失败类型、重复同步和上游价格修订审计）。数据库按非破坏性迁移升级至 v3；保留已有历史事件、贸易与价格。
+
+    # 本地运行一次。保持以操作系统调度器执行，而非网页打开时自动抓取。
+    python sync_tasks.py validate
+    python sync_tasks.py once
+    python sync_tasks.py status
+
+默认计划是 `data/sync-plan.example.json`：Brent/WTI（FRED，滚动 45 天）以及 P2 官方事件文件的变化检查。**事件文件只核查、告警，不会自动批准或导入**。任务失败不会清空上次成功数据库行情；连续失败会有状态记录。数据源状态可在页面“数据源健康”面板或只读 `GET /api/sync/status` 查看。
+
+正式自动执行需在部署主机的 cron / Windows 任务计划程序设置触发时间；程序不会悄悄在后台自行运行，也不会自动发送电子邮件。针对来源修改的提醒只能由操作人员复核后通过 `python sync_tasks.py ack-change --job official-events-watch` 确认已处理，该动作不是事件编辑审批。
+
+**完整配置说明、调度示例、重试与审计规则：** [docs/sync-operations.md](docs/sync-operations.md)。本项目对受限制第三方价格数据不默认授予公开再分发权。

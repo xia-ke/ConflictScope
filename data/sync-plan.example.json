@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "fred-brent",
+      "provider": "fred",
+      "series": "DCOILBRENTEU",
+      "days_back": 45
+    },
+    {
+      "id": "fred-wti",
+      "provider": "fred",
+      "series": "DCOILWTICO",
+      "days_back": 45
+    },
+    {
+      "id": "official-events-watch",
+      "provider": "event-watch",
+      "file": "data/official-events-2022-2024.json"
+    }
+  ]
+}

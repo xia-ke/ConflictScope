@@ -84,3 +84,16 @@
 .study-comparison-table td:first-child{max-width:170px;color:#d3e0e6}
 .study-comparison-table td:nth-child(2),.study-comparison-table td:nth-child(3){text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;color:#c3d0d7}
 @media(max-width:440px){.study-controls{grid-template-columns:1fr}.study-stat-value{font-size:15px}}
+
+
+/* P4 data source observability: local-only, never a market-data licensing statement. */
+.sync-section{border-top:1px solid var(--line);padding-top:18px;margin-top:20px}
+.sync-heading{display:flex;align-items:center;justify-content:space-between}
+.sync-heading h3{font-size:14px;font-weight:550;margin:0}
+.sync-note{font-size:10px;color:#abc0c8;line-height:1.7;margin:9px 0}
+.sync-record{display:grid;grid-template-columns:1fr auto;gap:2px 9px;padding:9px 0;border-bottom:1px solid var(--line);font-size:10px}
+.sync-record-name{color:#cfdee5;overflow-wrap:anywhere}
+.sync-record-state{color:var(--accent);text-align:right}
+.sync-record-date{grid-column:1/-1;color:var(--muted);font-size:9px}
+.sync-attention{color:#d6b288;background:#37271855;border-left:2px solid #be9660;border-radius:3px;padding:8px 10px;font-size:10px;line-height:1.7;margin:9px 0}
+.sync-footnote{color:#78909b;font-size:9px;line-height:1.75;margin:9px 0}

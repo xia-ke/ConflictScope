@@ -11,11 +11,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_DB = ROOT / "data" / "geoeconomics.sqlite3"
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 TABLES = (
     "countries", "data_sources", "commodities", "commodity_hs_codes",
     "price_series", "price_observations", "trade_flows", "events", "event_links",
-    "event_evidence", "event_reviews",
+    "event_evidence", "event_reviews", "sync_runs", "source_checks", "price_revisions", "sync_leases",
 )
 
 SCHEMA = """
@@ -152,6 +152,45 @@ CREATE TABLE IF NOT EXISTS event_reviews (
   input_sha256 TEXT NOT NULL CHECK(length(input_sha256) = 64),
   approval_state TEXT NOT NULL CHECK(approval_state = 'approved')
 );
+-- P4: immutable per-attempt results, no API credentials / response-body storage.
+CREATE TABLE IF NOT EXISTS sync_runs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  job_id TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  completed_at TEXT,
+  status TEXT NOT NULL CHECK(status IN ('running','success','empty','error')),
+  attempts INTEGER NOT NULL DEFAULT 0 CHECK(attempts>=0),
+  record_count INTEGER NOT NULL DEFAULT 0 CHECK(record_count>=0),
+  source_fingerprint TEXT,
+  failure_code TEXT,
+  CHECK(source_fingerprint IS NULL OR length(source_fingerprint)=64)
+);
+CREATE INDEX IF NOT EXISTS idx_sync_job_started ON sync_runs(job_id,started_at DESC);
+CREATE TABLE IF NOT EXISTS source_checks (
+  job_id TEXT PRIMARY KEY,
+  checked_at TEXT NOT NULL,
+  status TEXT NOT NULL CHECK(status IN ('success','empty','error')),
+  last_success_at TEXT,
+  latest_observation TEXT,
+  fingerprint TEXT,
+  failure_code TEXT,
+  review_pending INTEGER NOT NULL DEFAULT 0 CHECK(review_pending IN (0,1)),
+  review_acknowledged_at TEXT
+);
+CREATE TABLE IF NOT EXISTS sync_leases (
+  name TEXT PRIMARY KEY,
+  token TEXT NOT NULL,
+  expires_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS price_revisions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  series_id TEXT NOT NULL REFERENCES price_series(id),
+  observed_at TEXT NOT NULL,
+  previous_value REAL NOT NULL,
+  replacement_value REAL NOT NULL,
+  detected_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_price_revisions_series ON price_revisions(series_id,observed_at);
 """
 
 
@@ -169,10 +208,10 @@ def connect(path=DEFAULT_DB, *, readonly=False):
 
 
 def initialize(path=DEFAULT_DB, *, seed_countries=True):
-    """Idempotent additive v0/v1 to v2 migration. No destructive changes or remote fetch."""
+    """Idempotent additive v0/v1/v2 to v3 migration. No destructive changes or remote fetch."""
     with connect(path) as conn:
         current = conn.execute("PRAGMA user_version").fetchone()[0]
-        if current not in (0, 1, SCHEMA_VERSION):
+        if current not in (0, 1, 2, SCHEMA_VERSION):
             raise RuntimeError(f"Unsupported database schema version: {current}")
         conn.executescript(SCHEMA)
         if seed_countries:

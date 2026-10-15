@@ -94,6 +94,13 @@ def save_prices(series_id, commodity_id, source, benchmark, frequency,
         conn.execute("""INSERT INTO price_series
             (id,commodity_id,source_id,benchmark,price_type,frequency,currency,unit)
             VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING""", (series_id, *identity))
+        # Track upstream corrections without treating a repeated sync as a revision.
+        # No credentials or provider response payload is persisted in this audit table.
+        conn.executemany("""INSERT INTO price_revisions
+            (series_id,observed_at,previous_value,replacement_value,detected_at)
+            SELECT series_id,observed_at,value,?,? FROM price_observations
+            WHERE series_id=? AND observed_at=? AND value<>?""",
+            [(float(value),when,series_id,day,float(value)) for day,value in observations])
         conn.executemany("""INSERT INTO price_observations
             (series_id,observed_at,value,retrieved_at) VALUES (?,?,?,?)
             ON CONFLICT(series_id,observed_at)

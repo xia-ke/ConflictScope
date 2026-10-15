@@ -20,7 +20,7 @@ class SchemaTests(unittest.TestCase):
 
     def test_initialization_is_repeatable_and_seeds_only_existing_countries(self):
         before = geo.status(self.db)
-        self.assertEqual(before["schema_version"], 2)
+        self.assertEqual(before["schema_version"], 3)
         self.assertEqual(before["tables"]["countries"], 19)
         self.assertEqual(before["tables"]["events"], 0)
         self.assertEqual(before["tables"]["event_reviews"], 0)
@@ -99,9 +99,19 @@ class SchemaTests(unittest.TestCase):
             conn.execute("PRAGMA user_version=1")
             conn.execute("INSERT INTO data_sources(id,name,homepage_url,access_type) VALUES ('old','Existing source','https://example.org','public')")
         geo.initialize(self.db)
-        self.assertEqual(geo.status(self.db)["schema_version"],2)
+        self.assertEqual(geo.status(self.db)["schema_version"],3)
         with geo.connect(self.db) as conn:
             self.assertEqual(conn.execute("SELECT name FROM data_sources WHERE id='old'").fetchone()[0],"Existing source")
+
+    def test_v2_upgrade_retains_event_price_data(self):
+        with geo.connect(self.db) as conn:
+            conn.execute("PRAGMA user_version=2")
+            conn.execute("INSERT INTO data_sources(id,name,homepage_url,access_type) VALUES ('old2','Existing source 2','https://example.org','public')")
+        geo.initialize(self.db)
+        self.assertEqual(geo.status(self.db)["schema_version"],3)
+        self.assertEqual(geo.status(self.db)["tables"]["source_checks"],0)
+        with geo.connect(self.db) as conn:
+            self.assertEqual(conn.execute("SELECT name FROM data_sources WHERE id='old2'").fetchone()[0],"Existing source 2")
 
     def test_future_schema_version_fails_closed(self):
         with geo.connect(self.db) as conn:

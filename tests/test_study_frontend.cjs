@@ -72,7 +72,7 @@ const document={
   createElementNS(ns,name){return new MockElement(name)},
   addEventListener(name,fn){handlers[name]=fn}
 };
-const Option=(label,value)=>{const o=new MockElement('option');o.textContent=label;o.value=value;return o;};
+function Option(label,value){const o=new MockElement('option');o.textContent=label;o.value=value;return o;}
 const code=fs.readFileSync(path.join(__dirname,'../static/study.js'),'utf8');
 vm.runInNewContext(code,{fetch,document,URL,URLSearchParams,Option,console});
 
